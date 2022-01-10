@@ -1,0 +1,9 @@
+[Unit]
+Description=Monitors/Polls the activity switch
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python /home/pi/TUDO-Activity-Indicator/software/switch_monitor.py %i
+
+[Install]
+WantedBy=multi-user.target

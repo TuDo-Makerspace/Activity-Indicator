@@ -1,0 +1,4 @@
+- Document usbmount and automounting
+- Document systemd and ipv4 stuff
+- Document rpi-gpio and swtich monitor service
+- Credit https://github.com/Jemgoss/systemd-gpio-monitor
