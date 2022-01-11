@@ -31,13 +31,11 @@ import os
 import sys
 import pathlib
 import time
-import urllib
 import argparse
 import configparser
 import RPi.GPIO as GPIO
 
 from enum import Enum
-from urllib.request import urlopen
 from ping3 import ping
 
 # Constants
@@ -60,27 +58,7 @@ class activity(Enum):
 # -
 # Returns True if connection is available, False otherwise
 def check_connection():
-        # try:
-        #         urlopen('http://www.google.com', timeout=5)
-        #         return True
-        # except urllib.error.HTTPError as e:
-        #         if e.code == 429:
-        #                 print("check_connection: Received 429 error, too many requests!")
-        #                 sys.stdout.flush()
-        #                 if 'Retry-After' in e.headers:
-        #                         time.sleep(int(e.headers['Retry-After']))
-        #                 else:
-        #                         time.sleep(WAIT_AFTER_429)
-
-        #         return False
-        r = ping('google.com')
-
-        if r == None:
-                print("check_connection: Failed with {}".format(r.ret_code))
-                sys.stdout.flush()
-                return False
-
-        return True
+        return ping('google.com') != False
 
 # Sets the connection indicator LED
 # -
@@ -106,8 +84,17 @@ def set_con_led(red_pin: int, green_pin: int, state: con_led_state):
 def error(red_pin: int, green_pin: int, message: str):
         print(message)
         sys.stdout.flush()
-        set_con_led(red_pin, green_pin, con_led_state.OFF)
-        time.sleep(1)     
+
+        for i in range(3):
+                set_con_led(red_pin, green_pin, con_led_state.GREEN)
+                time.sleep(0.5)
+                set_con_led(red_pin, green_pin, con_led_state.OFF)
+                time.sleep(0.5)
+                set_con_led(red_pin, green_pin, con_led_state.RED)
+                time.sleep(0.5)
+                set_con_led(red_pin, green_pin, con_led_state.OFF)
+                time.sleep(0.5)
+
         GPIO.cleanup()
         sys.exit(1)
 
@@ -144,14 +131,20 @@ def saved_state(path: str):
 def call_subservices(config: configparser.ConfigParser, activity: activity):
         for section in config.sections():
                 for option in config[section]:
+                        ret = 0
                         if activity == activity.opn and option == "openexec":
                                 print("Executing " + config[section][option])
                                 sys.stdout.flush()
-                                os.system(config[section][option])
-                        if activity == activity.clsd and option == "closedexec":
+                                ret = os.system(config[section][option])
+                        elif activity == activity.clsd and option == "closedexec":
                                 print("Executing " + config[section][option])
                                 sys.stdout.flush()
-                                os.system(config[section][option])
+                                ret = os.system(config[section][option])
+
+                        if ret != 0:
+                                return False
+
+        return True
 
 # --- MAIN --- #
 
@@ -204,16 +197,21 @@ while True:
 
         # Activity changed, call subservices
         if curr_state != prev_state:
-                if curr_state == GPIO.LOW:
-                        call_subservices(config, activity.opn)
-                elif curr_state == GPIO.HIGH:
-                        call_subservices(config, activity.clsd)
-
-                # Save activity state to file
                 try:
-                        save_state(SAVED_STATE_PATH, curr_state)
+                        ret = True
+                        if curr_state == GPIO.LOW:
+                                ret = call_subservices(config, activity.opn)
+                        elif curr_state == GPIO.HIGH:
+                                ret = call_subservices(config, activity.clsd)
+
+                        # Save activity state to file
+                        prev_state = curr_state
+                        save_state(SAVED_STATE_PATH, prev_state)
+
+                        if not ret:
+                                error(red_pin, green_pin, "Unexpected error while calling subservices")
+
                 except Exception as e:
                         error(red_pin, green_pin, str(e))
                         
-                prev_state = curr_state
         
