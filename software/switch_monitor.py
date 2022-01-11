@@ -31,12 +31,14 @@ import os
 import sys
 import pathlib
 import time
+import urllib
 import argparse
 import configparser
 import RPi.GPIO as GPIO
 
 from enum import Enum
 from urllib.request import urlopen
+from ping3 import ping
 
 # Constants
 ADD_DATA_PATH = "/var/lib/switch_monitor" # App data path
@@ -58,11 +60,27 @@ class activity(Enum):
 # -
 # Returns True if connection is available, False otherwise
 def check_connection():
-        try:
-                urlopen('http://www.google.com', timeout=1)
-                return True
-        except:
+        # try:
+        #         urlopen('http://www.google.com', timeout=5)
+        #         return True
+        # except urllib.error.HTTPError as e:
+        #         if e.code == 429:
+        #                 print("check_connection: Received 429 error, too many requests!")
+        #                 sys.stdout.flush()
+        #                 if 'Retry-After' in e.headers:
+        #                         time.sleep(int(e.headers['Retry-After']))
+        #                 else:
+        #                         time.sleep(WAIT_AFTER_429)
+
+        #         return False
+        r = ping('google.com')
+
+        if r == None:
+                print("check_connection: Failed with {}".format(r.ret_code))
+                sys.stdout.flush()
                 return False
+
+        return True
 
 # Sets the connection indicator LED
 # -
