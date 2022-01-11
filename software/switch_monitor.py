@@ -84,6 +84,7 @@ try:
 except Exception as e:
         error(args.CON_LED_RED_GPIO, args.CON_LED_GREEN_GPIO, str(e))
 
+# Set GPIO's
 switch_pin = args.SWITCH_GPIO
 red_pin = args.CON_LED_RED_GPIO
 green_pin = args.CON_LED_GREEN_GPIO
@@ -93,20 +94,23 @@ GPIO.setup(switch_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(red_pin, GPIO.OUT)
 GPIO.setup(green_pin, GPIO.OUT)
 
+# Check if saved state data exists, create if not
 if saved_state(SAVED_STATE_PATH) == None:
         try:
                 save_state(SAVED_STATE_PATH, GPIO.input(switch_pin))
         except Exception as e:
                 error(red_pin, green_pin, str(e))
 
+# Compare to last saved state
 prev_state = saved_state(SAVED_STATE_PATH)
 
+# Main loop
 while True:
+        # Check if connection is available
         while not check_connection():
                 set_con_led(red_pin, green_pin, con_led_state.RED)
 
         set_con_led(red_pin, green_pin, con_led_state.GREEN)
-
         curr_state = GPIO.input(switch_pin)
 
         if curr_state != prev_state:
