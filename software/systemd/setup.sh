@@ -15,7 +15,7 @@
 
 # Author: Patrick Pedersen <ctx.xda@gmail.com>
 # Brief Description: Sets up the switch_monitor systemd service
-# Usage: sudo ./setup.sh
+# Usage: sudo ./setup.sh [install|uninstall]
 
 # Get directory of this script
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
@@ -25,9 +25,20 @@ if [ "$EUID" -ne 0 ]
   exit
 fi
 
-systemctl stop switch_monitor.service
-rm -rf /etc/systemd/system/switch_monitor*.service
-cp "$SCRIPT_DIR/switch_monitor.service" /etc/systemd/system/
-systemctl daemon-reload
-systemctl enable switch_monitor.service
-systemctl start switch_monitor.service
+if [ "$1" = "install" ]; then
+        systemctl stop switch_monitor.service
+        rm -rf /etc/systemd/system/switch_monitor.service
+        cp "$SCRIPT_DIR/switch_monitor.service" /etc/systemd/system/
+        systemctl daemon-reload
+        systemctl enable switch_monitor.service
+        systemctl start switch_monitor.service
+elif [ "$1" = "uninstall" ]; then
+        systemctl stop switch_monitor.service
+        systemctl disable switch_monitor.service
+        rm -rf /etc/systemd/system/switch_monitor.service
+        systemctl daemon-reload
+else
+        echo "Usage: sudo ./setup.sh [install|uninstall]"
+fi
+
+

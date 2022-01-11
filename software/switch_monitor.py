@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # Copyright (C) 2022 Patrick Pedersen, TUDO Makerspace
 
 # This program is free software: you can redistribute it and/or modify

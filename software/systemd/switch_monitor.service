@@ -4,7 +4,7 @@ Description=Monitors/Polls the activity switch
 [Service]
 Type=simple
 Restart=on-failure
-ExecStart=/usr/bin/python /home/pi/Activity-Indicator/software/switch_monitor.py
+ExecStart=switch_monitor -c /var/lib/activity-indicator/switch_monitor.ini
 
 [Install]
 WantedBy=multi-user.target
