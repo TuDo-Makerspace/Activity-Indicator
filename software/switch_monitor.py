@@ -3,6 +3,7 @@ import sys
 import pathlib
 import time
 import argparse
+import configparser
 import RPi.GPIO as GPIO
 
 from enum import Enum
@@ -15,6 +16,11 @@ class con_led_state(Enum):
         OFF = 0
         RED = 1
         GREEN = 2
+
+class activity(Enum):
+        # Inverted because of pull-up
+        clsd = 0
+        opn = 1
 
 def check_connection():
         try:
@@ -57,26 +63,31 @@ def saved_state(path: str):
                         return None
                 return int(content)
 
+def call_subservices(config: configparser.ConfigParser, activity: activity):
+        for section in config.sections():
+                for option in config[section]:
+                        if activity == activity.opn and option == "openexec":
+                                print("Executing " + config[section][option])
+                                sys.stdout.flush()
+                                os.system(config[section][option])
+                        if activity == activity.clsd and option == "closedexec":
+                                print("Executing " + config[section][option])
+                                sys.stdout.flush()
+                                os.system(config[section][option])
+
 # --- MAIN --- #
 
 # Parse arguments
 parser = argparse.ArgumentParser(description='Monitor and handle activity switch')
 parser.add_argument(
-        'SWITCH_GPIO',
-        type=int,
-        help='GPIO connected to switch'
-)
-parser.add_argument(
-        'CON_LED_RED_GPIO',
-        type=int,
-        help='GPIO of red pin for connection LED'
-)
-parser.add_argument(
-        'CON_LED_GREEN_GPIO',
-        type=int,
-        help='GPIO of green pin for connection LED'
+        '-c', '--config',
+        default = os.path.dirname(os.path.realpath(__file__)) + '/config.ini',
+        type = str,
+        help = 'Path to configuration file'
 )
 args = parser.parse_args()
+config = configparser.ConfigParser()
+config.read(args.config)
 
 # Create app data path if it does not exist
 try:
@@ -85,9 +96,9 @@ except Exception as e:
         error(args.CON_LED_RED_GPIO, args.CON_LED_GREEN_GPIO, str(e))
 
 # Set GPIO's
-switch_pin = args.SWITCH_GPIO
-red_pin = args.CON_LED_RED_GPIO
-green_pin = args.CON_LED_GREEN_GPIO
+switch_pin = int(config['GPIO']['Switch'])
+red_pin = int(config['GPIO']['ConLEDRed'])
+green_pin = int(config['GPIO']['ConLEDGreen'])
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(switch_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -115,11 +126,9 @@ while True:
 
         if curr_state != prev_state:
                 if curr_state == GPIO.LOW:
-                        print("TUDO ist offen!")
-                        sys.stdout.flush()
+                        call_subservices(config, activity.opn)
                 elif curr_state == GPIO.HIGH:
-                        print("TUDO ist geschlossen!")
-                        sys.stdout.flush()
+                        call_subservices(config, activity.clsd)
 
                 try:
                         save_state(SAVED_STATE_PATH, curr_state)
