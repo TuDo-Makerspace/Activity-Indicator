@@ -3,6 +3,7 @@ Description=Monitors/Polls the activity switch
 
 [Service]
 Type=simple
+Restart=on-failure
 ExecStart=/usr/bin/python /home/pi/Activity-Indicator/software/switch_monitor.py
 
 [Install]
