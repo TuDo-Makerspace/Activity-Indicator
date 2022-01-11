@@ -1,9 +1,13 @@
-import argparse
+import os
 import sys
+import time
+import argparse
 import RPi.GPIO as GPIO
 
 from enum import Enum
 from urllib.request import urlopen
+
+ADD_DATA_PATH = "/var/lib/activity-indicator"
 
 class con_led_state(Enum):
         OFF = 0
@@ -27,6 +31,14 @@ def set_con_led(red_pin: int, green_pin: int, state: con_led_state):
         elif state == con_led_state.GREEN:
                 GPIO.output(red_pin, GPIO.LOW)
                 GPIO.output(green_pin, GPIO.HIGH)
+
+def error(red_pin: int, green_pin: int, message: str):
+        print(message)
+        sys.stdout.flush()
+        set_con_led(red_pin, green_pin, con_led_state.OFF)
+        time.sleep(1)     
+        GPIO.cleanup()
+        sys.exit(1)
 
 # Parse arguments
 parser = argparse.ArgumentParser(description='Monitor and handle activity switch')
@@ -61,7 +73,7 @@ prev_state = GPIO.input(switch_pin)
 while True:
         while not check_connection():
                 set_con_led(red_pin, green_pin, con_led_state.RED)
-        
+
         set_con_led(red_pin, green_pin, con_led_state.GREEN)
 
         curr_state = GPIO.input(switch_pin)
