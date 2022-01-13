@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # Copyright (C) 2022 Patrick Pedersen, TUDO Makerspace
 
 # This program is free software: you can redistribute it and/or modify
@@ -57,7 +59,7 @@ elif [ "$1" = "install" ]; then
         cp -v $PROJECT_DIR/software/switch_monitor.ini /var/lib/activity-indicator/switch_monitor.ini
         cp -v $PROJECT_DIR/software/telegram/telegram.ini /var/lib/activity-indicator/telegram.ini
 
-        echo "Setting up systemd service"
+        echo "Setting up systemd service..."
         bash $PROJECT_DIR/software/systemd/setup.sh install
 
         echo "Installation complete, the activity monitor should be running now!"
