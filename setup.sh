@@ -17,7 +17,7 @@
 
 # Author: Patrick Pedersen <ctx.xda@gmail.com>
 # Brief Description: Sets up the activity-indicator
-# Usage: See sudo ./setup.sh [install|uninstall]
+# Usage: See ./setup.sh help
 
 # Get directory of this script
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
@@ -41,7 +41,7 @@ if [ "$1" == "dependencies" ]; then
 
         echo "Installing pip dependencies..."
         pip3 install -r "$PROJECT_DIR/requirements.txt"
-        
+
         if [ $? -ne 0 ]; then
                 echo "Failed to install pip dependencies"
                 exit 1
@@ -75,10 +75,13 @@ elif [ "$1" = "uninstall" ]; then
 
         echo "Uninstallation complete"
 else
-        echo "Unknown or missing argument"
+        if [ "$1" != 'help' ]; then
+                echo "Unknown or missing argument"
+                echo
+        fi
+        echo "Usage: ./setup.sh [help|install|uninstall|dependencies]"
         echo
-        echo "Usage: sudo ./setup.sh [install|uninstall|dependencies]"
-        echo
+        echo -e "\thelp:\t\tDisplays this message"
         echo -e "\tinstall:\tSets up and enables the Activity indicator"
         echo -e "\tuninstall:\tStops and removes the Activity Indicator software"
         echo -e "\tdependencies:\tInstalls required software dependencies"
