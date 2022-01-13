@@ -58,7 +58,8 @@ class activity(Enum):
 # -
 # Returns True if connection is available, False otherwise
 def check_connection():
-        return ping('google.com') != False
+        ret = ping('google.com')
+        return ret != None and ret != False
 
 # Sets the connection indicator LED
 # -
