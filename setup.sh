@@ -21,12 +21,32 @@
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 PROJECT_DIR="$SCRIPT_DIR"
 
+APT_DEPENDENCIES="python3 python3-pip python3-dev"
+
 if [ "$EUID" -ne 0 ]
   then echo "Please run as root"
   exit
 fi
 
-if [ "$1" = "install" ]; then
+if [ "$1" == "dependencies" ]; then
+        echo "Installing apt dependencies..."
+        apt install -y $APT_DEPENDENCIES
+
+        if [ $? -ne 0 ]; then
+                echo "Failed to install apt dependencies"
+                exit 1
+        fi
+
+        echo "Installing pip dependencies..."
+        pip3 install -r "$PROJECT_DIR/requirements.txt"
+        
+        if [ $? -ne 0 ]; then
+                echo "Failed to install pip dependencies"
+                exit 1
+        fi
+
+        echo "Dependencies successfully installed"
+elif [ "$1" = "install" ]; then
         cp -v $PROJECT_DIR/software/switch_monitor.py /usr/local/sbin/switch_monitor
 
         mkdir -p /usr/share/pyshared/activity-indicator
@@ -53,5 +73,12 @@ elif [ "$1" = "uninstall" ]; then
 
         echo "Uninstallation complete"
 else
-        echo "Usage: sudo ./setup.sh [install|uninstall]"
+        echo "Unknown or missing argument"
+        echo
+        echo "Usage: sudo ./setup.sh [install|uninstall|dependencies]"
+        echo
+        echo -e "\tinstall:\tSets up and enables the Activity indicator"
+        echo -e "\tuninstall:\tStops and removes the Activity Indicator software"
+        echo -e "\tdependencies:\tInstalls required software dependencies"
+        echo
 fi
