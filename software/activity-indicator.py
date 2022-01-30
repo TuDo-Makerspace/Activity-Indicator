@@ -16,14 +16,13 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 # Author: Patrick Pedersen <ctx.xda@gmail.com>
-# Brief Description: Monitors and handles the activity switch
-
 # Description:
-#       The following script is run by the switch_monitor systemd service.
-#       It monitors the activity switch, reports if a connection to the internet
-#       is available, and executes a list of sub-services specified in the
+#       The following script contains the main code for the activity indicator.
+#       It is executed as a background service by the activity-indicator systemd
+#       service and monitors the activity switch, reports if a connection to the 
+#       internet is available, and executes a list of sub-services specified in the
 #       config file.
-#       This script must be run by the switch_monitor systemd service, and should not
+#       This script must be run by the activity-indicator systemd service, and should not
 #       be run manually. The GPIOs for the activity switch, as well as the connection
 #       indicator LED must be specified in the config file.
 
@@ -39,7 +38,7 @@ from enum import Enum
 from ping3 import ping
 
 # Constants
-ADD_DATA_PATH = "/var/lib/switch_monitor" # App data path
+ADD_DATA_PATH = "/var/lib/activity-indicator" # App data path
 SAVED_STATE_PATH = ADD_DATA_PATH + "/saved_state" # Path to save states to
 
 # Enum for connection indicator LED
@@ -77,7 +76,7 @@ def set_con_led(red_pin: int, green_pin: int, state: con_led_state):
                 GPIO.output(red_pin, GPIO.LOW)
                 GPIO.output(green_pin, GPIO.HIGH)
 
-# Prints error message, turns off the connection LED, cleans up the GPIOs and exits
+# Prints error message, blinks the connection LED green and red 3x, cleans up the GPIOs and exits
 # -
 # red_pin: GPIO pin connected to red LED
 # green_pin: GPIO pin connected to green LED
@@ -150,10 +149,10 @@ def call_subservices(config: configparser.ConfigParser, activity: activity):
 # --- MAIN --- #
 
 # Parse arguments
-parser = argparse.ArgumentParser(description='Monitor and handle activity switch')
+parser = argparse.ArgumentParser(description='Handles the activity indicator')
 parser.add_argument(
         '-c', '--config',
-        default = os.path.dirname(os.path.realpath(__file__)) + '/config.ini',
+        default = os.path.dirname(os.path.realpath(__file__)) + '/activity-indicator.ini',
         type = str,
         help = 'Path to configuration file'
 )

@@ -1,0 +1,10 @@
+[Unit]
+Description=Handles the activity indicator, see activity-indicator.py for more details
+
+[Service]
+Type=simple
+Restart=on-failure
+ExecStart=activity-indicator -c /var/lib/activity-indicator/activity-indicator.ini
+
+[Install]
+WantedBy=multi-user.target

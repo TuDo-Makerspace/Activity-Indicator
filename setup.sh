@@ -49,23 +49,23 @@ if [ "$1" == "dependencies" ]; then
 
         echo "Dependencies successfully installed"
 elif [ "$1" = "install" ]; then
-        cp -v $PROJECT_DIR/software/switch_monitor.py /usr/local/sbin/switch_monitor
+        cp -v $PROJECT_DIR/software/activity-indicator.py /usr/local/sbin/activity-indicator
 
         mkdir -p /usr/share/pyshared/activity-indicator
         mkdir -p /usr/share/pyshared/activity-indicator/telegram
         cp -v $PROJECT_DIR/software/telegram/*.py /usr/share/pyshared/activity-indicator/telegram/
 
         mkdir -p /var/lib/activity-indicator
-        cp -v $PROJECT_DIR/software/switch_monitor.ini /var/lib/activity-indicator/switch_monitor.ini
+        cp -v $PROJECT_DIR/software/activity-indicator.ini /var/lib/activity-indicator/activity-indicator.ini
         cp -v $PROJECT_DIR/software/telegram/telegram.ini /var/lib/activity-indicator/telegram.ini
 
         echo "Setting up systemd service..."
         bash $PROJECT_DIR/software/systemd/setup.sh install
 
-        echo "Installation complete, the activity monitor should be running now!"
+        echo "Installation complete, the activity switch should be running now!"
 elif [ "$1" = "uninstall" ]; then
         echo "Uninstalling..."
-        rm -v -rf /usr/local/sbin/switch_monitor
+        rm -v -rf /usr/local/sbin/activity-indicator
         rm -v -rf /usr/share/pyshared/activity-indicator
         rm -v -rf /var/lib/activity-indicator
         rm -v -rf /etc/systemd/system/activity-indicator.service

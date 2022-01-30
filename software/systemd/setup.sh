@@ -16,7 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 # Author: Patrick Pedersen <ctx.xda@gmail.com>
-# Brief Description: Sets up the switch_monitor systemd service
+# Brief Description: Sets up the activity-indicator systemd service
 # Usage: sudo ./setup.sh [install|uninstall]
 
 # Get directory of this script
@@ -28,16 +28,16 @@ if [ "$EUID" -ne 0 ]
 fi
 
 if [ "$1" = "install" ]; then
-        systemctl stop switch_monitor.service
-        rm -rf /etc/systemd/system/switch_monitor.service
-        cp "$SCRIPT_DIR/switch_monitor.service" /etc/systemd/system/
+        systemctl stop activity-indicator.service
+        rm -rf /etc/systemd/system/activity-indicator.service
+        cp "$SCRIPT_DIR/activity-indicator.service" /etc/systemd/system/
         systemctl daemon-reload
-        systemctl enable switch_monitor.service
-        systemctl start switch_monitor.service
+        systemctl enable activity-indicator.service
+        systemctl start activity-indicator.service
 elif [ "$1" = "uninstall" ]; then
-        systemctl stop switch_monitor.service
-        systemctl disable switch_monitor.service
-        rm -rf /etc/systemd/system/switch_monitor.service
+        systemctl stop activity-indicator.service
+        systemctl disable activity-indicator.service
+        rm -rf /etc/systemd/system/activity-indicator.service
         systemctl daemon-reload
 else
         echo "Usage: sudo ./setup.sh [install|uninstall]"
