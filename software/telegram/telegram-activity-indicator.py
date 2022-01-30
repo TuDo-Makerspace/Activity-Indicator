@@ -32,7 +32,7 @@ import telegram
 # Parse arguments
 parser = argparse.ArgumentParser(description='Send TUDO activity info via a Telegram bot')
 parser.add_argument('--log_level', '-l', help='Log level', default='INFO')
-parser.add_argument('--config_file', '-c', help='Config file', default='config.ini')
+parser.add_argument('--config_file', '-c', help='Config file', default='telegram.ini')
 parser.add_argument(
         'activity',
         choices=['open', 'closed'],
