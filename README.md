@@ -13,8 +13,8 @@ A physical switch that informs everyone whether the TU-DO Makerspace is currentl
 - [Software - Setting up the Activity Indicator](#software---setting-up-the-activity-indicator)
   - [Preparation](#preparation)
   - [An Overview of the Software](#an-overview-of-the-software)
-  - [activity-indicator.py](#activity-indicatorpy)
-  - [Telegram Bot](#telegram-bot)
+    - [activity-indicator.py](#activity-indicatorpy)
+    - [Telegram Bot](#telegram-bot)
   - [Configuring the software](#configuring-the-software)
     - [Setting up the main configuration file](#setting-up-the-main-configuration-file)
     - [Setting up the telegram bot](#setting-up-the-telegram-bot)
@@ -94,7 +94,7 @@ This will install all required apt packages and python modules.
 
 This section will briefly provide an overview of the software behind the activity-indicator.
 
-### activity-indicator.py
+#### activity-indicator.py
 
 The activity indicator software primarily driven by the [acitvity-indicator.py](software/activity-indicator.py) script, whose primary job is to monitor and handles changes in the activity switch. It is launched as a systemd service and continously runs in the background.
 
@@ -104,7 +104,7 @@ The script is also responsible for checking whether an internet connection is av
 
 Unexpected errors are also handled: Should an unexpected error occur during execution, the script will print an error message and blinks the connection LED green and red 3 times. The systemd service unit for the script, [activity-indicator.service](software/systemd/activity-indicator.service), is configured to automatically restart the script after it has exited, meaning the script must not be manually started again after a crash or unexpected exit.
 
-### Telegram Bot
+#### Telegram Bot
 
 The scripts and configuration files to run a telegram bot can be found in the [software/telegram](software/telegram) folder.
 
