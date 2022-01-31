@@ -2,6 +2,8 @@
 
 A physical switch that informs everyone whether the TU-DO Makerspace is currently open or closed.
 
+<img src="docs/IndicatorShowcase.png" alt="drawing" height="500"/>
+
 ## Table of Contents <!-- omit in toc -->
 - [Communication Channels](#communication-channels)
 - [Overview](#overview)
