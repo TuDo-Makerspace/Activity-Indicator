@@ -18,7 +18,7 @@ A physical switch that informs everyone whether the TU-DO Makerspace is currentl
   - [Configuring the software](#configuring-the-software)
     - [Setting up the main configuration file](#setting-up-the-main-configuration-file)
     - [Setting up the telegram bot](#setting-up-the-telegram-bot)
-    - [Adding custom sub-processes](#adding-custom-sub-processes)
+    - [Adding custom subservices](#adding-custom-subservices)
   - [Installation](#installation)
 - [License](#license)
 
@@ -35,7 +35,7 @@ The Acitivity Indicator arose from the need to inform the public about the curre
 The hardware behind the Activity Indicator consists of a Raspberry Pi Zero W, along with two status LEDs: One red LED indicating power, and one multicolor red and green LED indicating whether a internet connection is available (green if available, red if not).
 On top of the Raspberry Pi Zero W, a systemd service is installed which monitors and handles the activity switch and continuously checks the internet connection.
 
-The software is by no means limited to work for applications of the TU-DO Makerspace only! It can be configured to practially execute whichever commands desired upon switch events. Even sub-processes found within this repo, such as [the script used to send a Telegram message](software/telegram), can be configured to operate for any chat with a configurable message for opening and closing events each
+The software is by no means limited to work for applications of the TU-DO Makerspace only! It can be configured to practially execute whichever commands desired upon switch events. Even subservices found within this repo, such as [the script used to send a Telegram message](software/telegram), can be configured to operate for any chat with a configurable message for opening and closing events each
 
 A more detailed overview of the hardware and software, along with how to build and set-up your very own activity indicator is provided in the upcoming sections.
 
@@ -99,7 +99,7 @@ This section will briefly provide an overview of the software behind the activit
 
 The activity indicator software primarily driven by the [acitvity-indicator.py](software/activity-indicator.py) script, whose primary job is to monitor and handles changes in the activity switch. It is launched as a systemd service and continously runs in the background.
 
-When a change in the activity switch has been detected, the script will execute all sub-processes defined in the [activity-indicator.ini](software/activity-indicator.ini) configuration file assigned to the committed action (open or closed). Each sub-process defined in the configuration file can contain a command which should be executed upon setting the switch into its opening position (`OpenExec`) and closing position (`ClosedExec`). Setting up the configuration file is explained in the ["Configuring the software" section](#configuring-the-software).     
+When a change in the activity switch has been detected, the script will execute all subservices defined in the [activity-indicator.ini](software/activity-indicator.ini) configuration file assigned to the committed action (open or closed). Each subservice defined in the configuration file can contain a command which should be executed upon setting the switch into its opening position (`OpenExec`) and closing position (`ClosedExec`). Setting up the configuration file is explained in the ["Configuring the software" section](#configuring-the-software).     
 
 The script is also responsible for checking whether an internet connection is available, which in return sets the color of the connection indicator LED. Should no internet connection be available, the programm is halted and returns to execution as soon as a connection is established again. If the switch position is changed while no internet connection is available, the change will be registered as soon as the connection has been established again.
 
@@ -141,9 +141,9 @@ ClosedExec = /usr/bin/python3 /usr/share/pyshared/activity-indicator/telegram/te
 
 Make sure to assign the correct GPIOs to your own configuration if they do not already match the ones above.
 
-The `[telegram]` section provides the commands to execute the telegram-bot sub process. If you do not wish to use a telegram bot for the activity indicator, comment out or remove this entry.
+The `[telegram]` section provides the commands to execute the telegram-bot subservice. If you do not wish to use a telegram bot for the activity indicator, comment out or remove this entry.
 
-Adding additional sub-processes is elaborated further in the ["Adding custom sub-processes" section](#adding-custom-sub-processes) below. 
+Adding additional subservices is elaborated further in the ["Adding custom subservices" section](#adding-custom-subservices) below. 
 
 #### Setting up the telegram bot
 
@@ -185,11 +185,11 @@ OpenMessage = TUDO is open!
 ClosedMessage = TUDO is closed!
 ```
 
-#### Adding custom sub-processes
+#### Adding custom subservices
 
-Adding a custom sub process is as simple as adding a new section to the activity-indicator configuration file. The section name should describe the sub-process, and the commands to execute should be specified in the `OpenExec` and `ClosedExec` entries.
+Adding a custom subservice is as simple as adding a new section to the activity-indicator configuration file. The section name should describe the subservice, and the commands to execute should be specified in the `OpenExec` and `ClosedExec` entries.
 
-Where to store your sub-process program or script is up to you.
+Where to store your subservice program or script is up to you.
 
 As an example, suppose we wish to save the current time every time the activity changes. We can add the following lines to the configuration file:
 
