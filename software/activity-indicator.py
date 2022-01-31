@@ -49,7 +49,6 @@ class con_led_state(Enum):
 
 # Enum for possible activity states
 class activity(Enum):
-        # Inverted because of pull-up
         clsd = 0
         opn = 1
 
