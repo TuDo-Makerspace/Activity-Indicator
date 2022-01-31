@@ -98,7 +98,7 @@ This section will briefly provide an overview of the software behind the activit
 
 The activity indicator software primarily driven by the [acitvity-indicator.py](software/activity-indicator.py) script, whose primary job is to monitor and handles changes in the activity switch. It is launched as a systemd service and continously runs in the background.
 
-When a change in the activity switch has been detected, the scandript will execute all sub-processes defined in the [activity-indicator.ini](software/activity-indicator.ini) configuration file assigned to the committed action (open or closed). Each sub-process defined in the configuration file can contain a command which should be executed upon setting the switch into its opening (`OpenExec`) position and closing (`ClosedExec`) position. Setting up the configuration file will be explained in the [Configuring the software section](#configuring-the-software).     
+When a change in the activity switch has been detected, the script will execute all sub-processes defined in the [activity-indicator.ini](software/activity-indicator.ini) configuration file assigned to the committed action (open or closed). Each sub-process defined in the configuration file can contain a command which should be executed upon setting the switch into its opening position (`OpenExec`) and closing position (`ClosedExec`). Setting up the configuration file is explained in the ["Configuring the software" section](#configuring-the-software).     
 
 The script is also responsible for checking whether an internet connection is available, which in return sets the color of the connection indicator LED. Should no internet connection be available, the programm is halted and returns to execution as soon as a connection is established again. If the switch position is changed while no internet connection is available, the change will be registered as soon as the connection has been established again.
 
@@ -109,7 +109,7 @@ Unexpected errors are also handled: Should an unexpected error occur during exec
 The scripts and configuration files to run a telegram bot can be found in the [software/telegram](software/telegram) folder.
 
 The [telegram-activity-indicator.py](software/telegram/telegram-activity-indicator.py) script is responsible for sending
-an opening and closing message, specified in the [telegram.ini](software/telegram/telegram.ini) configuration file, to one or more chats. Setting up the configuration file will be explained in the [Configuring the software section](#configuring-the-software).
+an opening and closing message to one or more chats. Chats, along with their opening and closing messages can be configured in the [telegram.ini](software/telegram/telegram.ini) configuration file. Setting up the configuration file is explained in the ["Configuring the software" section](#configuring-the-software).
 
 The script takes a path to a configuration file (`-c`, if not specified, set to `telegram.ini`) and a activity status (`open` or `closed`) as an argument. It also offers you to set the log level using the `-l` flag, which is set to `INFO` if left out.
 The full script usage can be printed by providing it the `-h` option.
@@ -140,9 +140,9 @@ ClosedExec = /usr/bin/python3 /usr/share/pyshared/activity-indicator/telegram/te
 
 Make sure to assign the correct GPIOs to your own configuration if they do not already match the ones above.
 
-The next section provides the commands to execute the telegram-bot sub process. If you do not wish to use a telegram bot for the activity indicator, comment out or remove this entry.
+The `[telegram]` section provides the commands to execute the telegram-bot sub process. If you do not wish to use a telegram bot for the activity indicator, comment out or remove this entry.
 
-Adding custom sub-processes is elaborated further in the [Adding custom sub-processes section](#adding-custom-sub-processes). 
+Adding additional sub-processes is elaborated further in the ["Adding custom sub-processes" section](#adding-custom-sub-processes) below. 
 
 #### Setting up the telegram bot
 
@@ -171,7 +171,7 @@ ClosedMessage = INSERT YOUR CLOSED MESSAGE HERE
 
 In the bot section, specify the token of the bot you created. You should have received this token from the BotFather upon creating your bot.
 
-Next up, you will need to specify the target chats that should be notified of the activity change. You can add as many chats as you want and name them anything except 'bot'. Each chat section takes a chat ID (`ChatID`, see [this stack overflow thread to learn how to get the ID of a chat](https://stackoverflow.com/questions/32423837/telegram-bot-how-to-get-a-group-chat-id)), the message to send when the activity has changed to open(`OpenMessage`) and the message to send when the activity has changed to closed (`ClosedMessage`).
+Next up, you will need to specify the target chats that should be notified of the activity change. You can add as many chats as you want and name them anything except 'bot'. Each chat section takes a chat ID (`ChatID`, [see this stack overflow thread to learn how to get the ID of a chat](https://stackoverflow.com/questions/32423837/telegram-bot-how-to-get-a-group-chat-id)), the message to send when the activity has changed to open(`OpenMessage`) and the message to send when the activity has changed to closed (`ClosedMessage`).
 
 An example configuration could look like this:
 ```
@@ -186,11 +186,11 @@ ClosedMessage = TUDO is closed!
 
 #### Adding custom sub-processes
 
-Adding a custom sub process is as simple as adding an entry to the activity-indicator configuration file. The entry name should be the name of the sub process, and the commands to execute should be specified in the `OpenExec` and `ClosedExec` entries.
+Adding a custom sub process is as simple as adding a new section to the activity-indicator configuration file. The section name should describe the sub-process, and the commands to execute should be specified in the `OpenExec` and `ClosedExec` entries.
 
-Where to store your subprocess program or script is up to you.
+Where to store your sub-process program or script is up to you.
 
-As an example, suppose we wish to save the current time every time the activity changes. We can add the following entry to the configuration file:
+As an example, suppose we wish to save the current time every time the activity changes. We can add the following lines to the configuration file:
 
 ```
 [time]
