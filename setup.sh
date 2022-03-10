@@ -19,11 +19,28 @@
 # Brief Description: Sets up the activity-indicator
 # Usage: See ./setup.sh help
 
+BIN_DIR=/usr/local/sbin/activity-indicator
+PY_SCRIPTS_DIR=/usr/share/pyshared/activity-indicator
+CFG_DIR=/var/lib/activity-indicator
+
 # Get directory of this script
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 PROJECT_DIR="$SCRIPT_DIR"
 
 APT_DEPENDENCIES="python3 python3-pip python3-dev"
+
+emu_mount_fixed_cpuinfo() {
+	mkdir -p $CFG_DIR
+	cp /proc/cpuinfo $CFG_DIR/cpuinfo
+	sed -i '/^Hardware\t*:.*/a Revision\t: a02082' $CFG_DIR/cpuinfo
+
+	mnt_cmd="mount -v --bind $CFG_DIR/cpuinfo /proc/cpuinfo"
+
+	if ! grep -q "^$mnt_cmd" /etc/rc.local; then
+		sed -i '/^exit 0/i\'"$mnt_cmd" /etc/rc.local
+		bash $mnt_cmd
+	fi
+}
 
 if [ "$EUID" -ne 0 ]
   then echo "Please run as root"
@@ -48,26 +65,34 @@ if [ "$1" == "dependencies" ]; then
         fi
 
         echo "Dependencies successfully installed"
-elif [ "$1" = "install" ]; then
-        cp -v $PROJECT_DIR/software/activity-indicator.py /usr/local/sbin/activity-indicator
+elif [[ "$1" == "install" || "$1" == "install-emu" ]]; then
+	echo "Installing activity-indicator..."
 
-        mkdir -p /usr/share/pyshared/activity-indicator
-        mkdir -p /usr/share/pyshared/activity-indicator/telegram
-        cp -v $PROJECT_DIR/software/telegram/*.py /usr/share/pyshared/activity-indicator/telegram/
+	if [ "$1" == "install-emu" ]; then
+		echo "Mounting fixed cpuinfo for GPIO libraries to work..."
+		emu_mount_fixed_cpuinfo
+		echo "Mounted fixed cpuinfo!"
+	fi
 
-        mkdir -p /var/lib/activity-indicator
-        cp -v $PROJECT_DIR/software/activity-indicator.ini /var/lib/activity-indicator/activity-indicator.ini
-        cp -v $PROJECT_DIR/software/telegram/telegram.ini /var/lib/activity-indicator/telegram.ini
+        cp -v $PROJECT_DIR/software/activity-indicator.py $BIN_DIR
+
+        mkdir -p $PY_SCRIPTS_DIR
+        mkdir -p $PY_SCRIPTS_DIR/telegram
+        cp -v $PROJECT_DIR/software/telegram/*.py $PY_SCRIPTS_DIR/telegram/
+
+        mkdir -p $CFG_DIR
+        cp -v $PROJECT_DIR/software/activity-indicator.ini $CFG_DIR/activity-indicator.ini
+        cp -v $PROJECT_DIR/software/telegram/telegram.ini $CFG_DIR/telegram.ini
 
         echo "Setting up systemd service..."
         bash $PROJECT_DIR/software/systemd/setup.sh install
 
         echo "Installation complete, the activity switch should be running now!"
-elif [ "$1" = "uninstall" ]; then
+elif [ "$1" == "uninstall" ]; then
         echo "Uninstalling..."
-        rm -v -rf /usr/local/sbin/activity-indicator
-        rm -v -rf /usr/share/pyshared/activity-indicator
-        rm -v -rf /var/lib/activity-indicator
+        rm -v -rf $BIN_DIR
+        rm -v -rf $PY_SCRIPTS_DIR
+        rm -v -rf $CFG_DIR
         rm -v -rf /etc/systemd/system/activity-indicator.service
 
         echo "Disabling systemd service"
