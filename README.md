@@ -8,18 +8,21 @@ A physical switch that informs everyone whether the TU-DO Makerspace is currentl
 - [Communication Channels](#communication-channels)
 - [Overview](#overview)
 - [Hardware - Building the Activity Indicator](#hardware---building-the-activity-indicator)
-  - [Components](#components)
-  - [Wiring](#wiring)
+	- [Components](#components)
+	- [Wiring](#wiring)
 - [Software - Setting up the Activity Indicator](#software---setting-up-the-activity-indicator)
-  - [Preparation](#preparation)
-  - [An Overview of the Software](#an-overview-of-the-software)
-    - [activity-indicator.py](#activity-indicatorpy)
-    - [Telegram Bot](#telegram-bot)
-  - [Configuring the software](#configuring-the-software)
-    - [Setting up the main configuration file](#setting-up-the-main-configuration-file)
-    - [Setting up the telegram bot](#setting-up-the-telegram-bot)
-    - [Adding custom subservices](#adding-custom-subservices)
-  - [Installation](#installation)
+	- [Preparation](#preparation)
+	- [An Overview of the Software](#an-overview-of-the-software)
+		- [activity-indicator.py](#activity-indicatorpy)
+		- [Telegram Bot](#telegram-bot)
+	- [Configuring the software](#configuring-the-software)
+		- [Setting up the main configuration file](#setting-up-the-main-configuration-file)
+		- [Setting up the telegram bot](#setting-up-the-telegram-bot)
+		- [Adding custom subservices](#adding-custom-subservices)
+	- [Installation](#installation)
+	- [Emulation](#emulation)
+		- [Prerequisites](#prerequisites)
+		- [Setting up qemu-rpi-gpio](#setting-up-qemu-rpi-gpio)
 - [License](#license)
 
 ## Communication Channels
@@ -222,6 +225,164 @@ To uninstall the software, simply execute the setup script with the `uninstall` 
 
 ```
 $ sudo ./setup.sh uninstall
+```
+
+### Emulation
+
+When developing new features for the Activity Indicator, it  may be useful to comfortably emulate the activity indicator in a virtual rpi machine instead of needing access to a physical RPi. Thankfully, [qemu](https://www.qemu.org/), along with [berdav's qemu-rpi-gpio tool](https://github.com/berdav/qemu-rpi-gpio), can be used to runa a virtual Raspberry Pi with support for GPIO emulation.
+
+#### Prerequisites
+
+> Note: qemu-rpi-gpio has been written for debian based distributions. As a result, it is likely this guide will not work on other linux distributions.
+
+To establish an emulation environment for the activity indicator, begin by ensuring the following dependencies are installed first:
+
+- [Git](https://git-scm.com/)
+- [Python3](https://www.python.org/)
+- [QEMU (for ARM)](https://www.qemu.org/)(Version >= 5.10)
+- [Pexpect](https://pexpect.readthedocs.io)
+- [socat](http://www.dest-unreach.org/socat/)
+- [p7zip](http://p7zip.sourceforge.net/)
+
+For Ubuntu 21.10 and above, the depencies can be installed with the following command:
+```bash
+$ sudo apt install git python3 python3-pexpect p7zip-full qemu-system-arm socat
+```
+
+**For Ubuntu versions prior to 21.10**, ensure QEMU is installed from a source with version 5.10 or above. For Ubuntu 20.04, this is possible by adding the canonical-server backports PPA to your system:
+```bash
+# For Ubuntu 20.04:
+$ sudo add-apt-repository ppa:canonical-server/server-backports && sudo apt update
+$ sudo apt install git python3 python3-pexpect p7zip-full qemu-system-arm socat
+```
+
+#### Setting up qemu-rpi-gpio
+
+Proceed by cloning the qemu-rpi-gpio repository, and entering its directory:
+```
+$ git clone git@github.com:berdav/qemu-rpi-gpio.git && cd qemu-rpi-gpio
+```
+
+Run the setup script which will install some required dependencies, fetch the latest RPi OS image, and create a mounting point for the RPi emulator.
+```
+$ bash qemu-rpi-gpio/setup.sh
+```
+
+Once the setup script has completed, run the qemu-rpi-gpio to provide the virtual GPIOs to the emulator:
+
+``` bash
+$ python3 qemu-rpi-gpio
+```
+
+The script will enter an interactive shell, where GPIO inputs can be emulated. For now, keep the shell open, and open a new terminal. Within the new terminal, start up the RPi emulation using the run script:
+
+```
+$ bash qemu-rpi-gpio/run.sh
+```
+
+The RPi emulator should now be up and running and you will be greeted with a login shell. At the time of writing, the default username is `pi` and the default password is `raspberry`. Once logged in, we will need to expand the disk size of the root partition, as it is currently limited to 1.6GB.
+
+In the emulator shell, run the fdisk utility and provide `/dev/mmcblk0` as the device to be partitioned:
+```bash
+$ sudo fdisk /dev/mmcblk0
+```
+
+This will enter an interactive shell. Enter the `p` command to display a list of partitions and *note down the start sector of the root partition* (`/dev/mmcblk0p2`):
+```
+Command (m for help): p
+Disk /dev/mmcblk0: 2 GiB, 2147483648 bytes, 4194304 sectors
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disklabel type: dos
+Disk identifier: 0xe72b8fd1
+
+Device         Boot  Start     End Sectors  Size Id Type
+/dev/mmcblk0p1        8192  532479  524288  256M  c W95 FAT32 (LBA)
+/dev/mmcblk0p2      532480 3923967 3391488  1.6G 83 Linux
+```
+
+In this example, the root partition starts at sector `532480`, however, this may be different on your system.
+
+The next step is to delete the root partition and create a new one with a larger size. Enter the following commands ([credit](https://gist.github.com/plembo/c4920016312f058209f5765cb9a3a25e)):
+
+```
+d - to delete a partition
+2 - choose partition 2
+n - create a new partition
+p - make it primary
+2 - partition number
+xxxxx - the starting sector of the original partition 2
+Enter - to accept the last sector of the disk as the end of the partition
+y - when it asks if you want to remove the signature
+w - to write all changes to disk
+```
+
+The size of the partition should now be increased to `1.7G`, not allot, but enough to download the necessities for the Activity Indicator to work.
+
+Finally, complete the resizing of the root partition by entering the following commands:
+
+```
+$ sudo resize2fs /dev/mmcblk0p2
+```
+
+#### Installing the Activity Indicator
+
+Begin by updating your repo list and installing git on your emulated RPi system:
+
+```bash
+$ sudo apt update && sudo apt install git
+```
+
+Cone the Activity Indiactor repo into your emulators home directory (Or anywhere else), and enter the project directory:
+```
+$ cd ~ && git clone https://github.com/TU-DO-Makerspace/Activity-Indicator && cd Activity-Indicator
+```
+
+To install the necessary software dependencies, run the setup.sh script with the dependencies option:
+```
+$ sudo ./setup.sh dependencies
+```
+
+At this point, ensure all configuration files ([activity-indicator.ini](software/activity-indicator.ini) etc., see [Configuring the software](#configuring-the-software)) in the repository are configured to your needs. Finally, run the setup script with the `install-emu` option:
+
+```bash
+$ sudo ./setup.sh install-emu
+```
+
+The Activity Indicator should now be running. The next step is to simulate GPIO inputs.
+
+#### Simulating GPIO inputs
+
+To simulate GPIO inputs, open the interactive qemu-rpi-gpio shell which we started earlier. Within the shell, use the following commands to simulate GPIO inputs ([credits](https://github.com/berdav/qemu-rpi-gpio/blob/master/README.md)):
+
+The main commands in the `qemu-rpi-gpio` application are:
+
+| command     | description                             | example |
+|-------------|-----------------------------------------|---------|
+| `get $N`    | get the value of GPIO $N                | get 4   |
+| `set $N $V` | set the value of GPIO $N to $V (1 or 0) | set 4 1 |
+
+You can get the full list of commands using `help` 
+
+For example, in our configuration, the Activity Indicator switch is connected to GPIO '16'. To simulate the switch being set to CLOSED, we can use the following command:
+```
+set 16 1
+```
+
+Note that it may seem counter intuitive to set the GPIO to `1` to set the switch to CLOSED, but this is because the real GPIO is configured to use a pull-up resistor.
+
+Contrary, to simulate the switch being set to OPEN, we can use the following command:
+```
+set 16 0
+```
+
+Should your Activity Indicator not react after setting the GPIO's, try to toggle the GPIO between 0 and 1, as you may have set it to the "previous state" of the switch already.
+
+Should things still not work as expected, inspect the service logs for the activity indicator service, and see if they report any errors:
+
+```
+$ journalctl -f -u activity-indicator.service
 ```
 
 ## License

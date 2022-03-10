@@ -38,7 +38,7 @@ emu_mount_fixed_cpuinfo() {
 
 	if ! grep -q "^$mnt_cmd" /etc/rc.local; then
 		sed -i '/^exit 0/i\'"$mnt_cmd" /etc/rc.local
-		bash $mnt_cmd
+		bash -c "$mnt_cmd"
 	fi
 }
 
