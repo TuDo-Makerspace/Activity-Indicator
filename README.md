@@ -231,7 +231,7 @@ $ sudo ./setup.sh uninstall
 
 ## Emulation
 
-When developing new features for the Activity Indicator, it  may be useful to comfortably emulate the activity indicator in a virtual rpi machine instead of needing access to a physical RPi. Thankfully, [qemu](https://www.qemu.org/), along with [berdav's qemu-rpi-gpio tool](https://github.com/berdav/qemu-rpi-gpio), can be used to runa a virtual Raspberry Pi with support for GPIO emulation.
+When developing new features for the Activity Indicator, it  may be useful to comfortably emulate the activity indicator in a virtual Raspberry Pi emulation instead of needing access to a physical Raspberry Pi. Thankfully, [qemu](https://www.qemu.org/), along with [berdav's qemu-rpi-gpio tool](https://github.com/berdav/qemu-rpi-gpio), can be used to run a a virtual Raspberry Pi with support for GPIO emulation.
 
 ### Prerequisites
 
@@ -260,7 +260,7 @@ $ sudo apt install git python3 python3-pexpect p7zip-full qemu-system-arm socat
 
 ### Setting up qemu-rpi-gpio
 
-Proceed by cloning the qemu-rpi-gpio repository, and entering its directory:
+Proceed by cloning the [qemu-rpi-gpio repository](https://github.com/berdav/qemu-rpi-gpio), and entering its directory:
 ```
 $ git clone git@github.com:berdav/qemu-rpi-gpio.git && cd qemu-rpi-gpio
 ```
@@ -276,13 +276,13 @@ Once the setup script has completed, run the qemu-rpi-gpio to provide the virtua
 $ python3 qemu-rpi-gpio
 ```
 
-The script will enter an interactive shell, where GPIO inputs can be emulated. For now, keep the shell open, and open a new terminal. Within the new terminal, start up the RPi emulation using the run script:
+The script will enter an interactive shell, where GPIO inputs can be emulated. For now, keep the shell open in the background and open a new terminal. Within the new terminal, start up the RPi emulation using the run script:
 
 ```
 $ bash qemu-rpi-gpio/run.sh
 ```
 
-The RPi emulator should now be up and running and you will be greeted with a login shell. At the time of writing, the default username is `pi` and the default password is `raspberry`. Once logged in, we will need to expand the disk size of the root partition, as it is currently limited to 1.6GB.
+The RPi emulator should now be up and running and you will be greeted with a login shell. At the time of writing, the default username is `pi` and the default password is `raspberry`. Once logged in, we will need to expand the disk size of the root partition, as it is currently limited to only 1.6GB.
 
 In the emulator shell, run the fdisk utility and provide `/dev/mmcblk0` as the device to be partitioned:
 ```bash
@@ -320,7 +320,7 @@ y - when it asks if you want to remove the signature
 w - to write all changes to disk
 ```
 
-The size of the partition should now be increased to `1.7G`, not allot, but enough to download the necessities for the Activity Indicator to work.
+The size of the partition should now be increased to `1.7G`, only by about `100MB`, but enough to download the necessities for the Activity Indicator to work.
 
 Finally, complete the resizing of the root partition by entering the following commands:
 
@@ -336,7 +336,7 @@ Begin by updating your repo list and installing git on your emulated RPi system:
 $ sudo apt update && sudo apt install git
 ```
 
-Cone the Activity Indiactor repo into your emulators home directory (Or anywhere else), and enter the project directory:
+Clone the Activity Indiactor repo into your emulators home directory (Or anywhere else), and enter the project directory:
 ```
 $ cd ~ && git clone https://github.com/TU-DO-Makerspace/Activity-Indicator && cd Activity-Indicator
 ```
@@ -367,19 +367,19 @@ The main commands in the `qemu-rpi-gpio` application are:
 
 You can get the full list of commands using `help` 
 
-For example, in our configuration, the Activity Indicator switch is connected to GPIO '16'. To simulate the switch being set to CLOSED, we can use the following command:
+For example, in our configuration, the Activity Indicator switch is connected to GPIO `16`. To simulate the switch being set to `CLOSED`, we can use the following command:
 ```
 set 16 1
 ```
 
-Note that it may seem counter intuitive to set the GPIO to `1` to set the switch to CLOSED, but this is because the real GPIO is configured to use a pull-up resistor.
+Note that it may seem counter intuitive to set the GPIO to `1` to set the switch to `CLOSED`, but this is because the real GPIO is configured to use a pull-up resistor.
 
-Contrary, to simulate the switch being set to OPEN, we can use the following command:
+Contrary, to simulate the switch being set to `OPEN`, we can use the following command:
 ```
 set 16 0
 ```
 
-Should your Activity Indicator not react after setting the GPIO's, try to toggle the GPIO between 0 and 1, as you may have set it to the "previous state" of the switch already.
+Should your Activity Indicator not react after setting the GPIO's, try to toggle the GPIO between `0` and `1`, as you may have set it to the "previous state" of the switch already.
 
 Should things still not work as expected, inspect the service logs for the activity indicator service, and see if they report any errors:
 
