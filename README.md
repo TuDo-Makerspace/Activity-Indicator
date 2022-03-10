@@ -8,21 +8,23 @@ A physical switch that informs everyone whether the TU-DO Makerspace is currentl
 - [Communication Channels](#communication-channels)
 - [Overview](#overview)
 - [Hardware - Building the Activity Indicator](#hardware---building-the-activity-indicator)
-	- [Components](#components)
-	- [Wiring](#wiring)
+  - [Components](#components)
+  - [Wiring](#wiring)
 - [Software - Setting up the Activity Indicator](#software---setting-up-the-activity-indicator)
-	- [Preparation](#preparation)
-	- [An Overview of the Software](#an-overview-of-the-software)
-		- [activity-indicator.py](#activity-indicatorpy)
-		- [Telegram Bot](#telegram-bot)
-	- [Configuring the software](#configuring-the-software)
-		- [Setting up the main configuration file](#setting-up-the-main-configuration-file)
-		- [Setting up the telegram bot](#setting-up-the-telegram-bot)
-		- [Adding custom subservices](#adding-custom-subservices)
-	- [Installation](#installation)
-	- [Emulation](#emulation)
-		- [Prerequisites](#prerequisites)
-		- [Setting up qemu-rpi-gpio](#setting-up-qemu-rpi-gpio)
+  - [Preparation](#preparation)
+  - [An Overview of the Software](#an-overview-of-the-software)
+    - [activity-indicator.py](#activity-indicatorpy)
+    - [Telegram Bot](#telegram-bot)
+  - [Configuring the software](#configuring-the-software)
+    - [Setting up the main configuration file](#setting-up-the-main-configuration-file)
+    - [Setting up the telegram bot](#setting-up-the-telegram-bot)
+    - [Adding custom subservices](#adding-custom-subservices)
+  - [Installation](#installation)
+- [Emulation](#emulation)
+  - [Prerequisites](#prerequisites)
+  - [Setting up qemu-rpi-gpio](#setting-up-qemu-rpi-gpio)
+  - [Installing the Activity Indicator](#installing-the-activity-indicator)
+  - [Simulating GPIO inputs](#simulating-gpio-inputs)
 - [License](#license)
 
 ## Communication Channels
@@ -227,11 +229,11 @@ To uninstall the software, simply execute the setup script with the `uninstall` 
 $ sudo ./setup.sh uninstall
 ```
 
-### Emulation
+## Emulation
 
 When developing new features for the Activity Indicator, it  may be useful to comfortably emulate the activity indicator in a virtual rpi machine instead of needing access to a physical RPi. Thankfully, [qemu](https://www.qemu.org/), along with [berdav's qemu-rpi-gpio tool](https://github.com/berdav/qemu-rpi-gpio), can be used to runa a virtual Raspberry Pi with support for GPIO emulation.
 
-#### Prerequisites
+### Prerequisites
 
 > Note: qemu-rpi-gpio has been written for debian based distributions. As a result, it is likely this guide will not work on other linux distributions.
 
@@ -256,7 +258,7 @@ $ sudo add-apt-repository ppa:canonical-server/server-backports && sudo apt upda
 $ sudo apt install git python3 python3-pexpect p7zip-full qemu-system-arm socat
 ```
 
-#### Setting up qemu-rpi-gpio
+### Setting up qemu-rpi-gpio
 
 Proceed by cloning the qemu-rpi-gpio repository, and entering its directory:
 ```
@@ -326,7 +328,7 @@ Finally, complete the resizing of the root partition by entering the following c
 $ sudo resize2fs /dev/mmcblk0p2
 ```
 
-#### Installing the Activity Indicator
+### Installing the Activity Indicator
 
 Begin by updating your repo list and installing git on your emulated RPi system:
 
@@ -352,7 +354,7 @@ $ sudo ./setup.sh install-emu
 
 The Activity Indicator should now be running. The next step is to simulate GPIO inputs.
 
-#### Simulating GPIO inputs
+### Simulating GPIO inputs
 
 To simulate GPIO inputs, open the interactive qemu-rpi-gpio shell which we started earlier. Within the shell, use the following commands to simulate GPIO inputs ([credits](https://github.com/berdav/qemu-rpi-gpio/blob/master/README.md)):
 
