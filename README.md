@@ -273,7 +273,7 @@ $ bash qemu-pi-setup/setup.sh
 Once the setup script has completed, run the qemu-rpi-gpio to provide the virtual GPIOs to the emulator:
 
 ``` bash
-$ python3 qemu-rpi-gpio
+$ ./qemu-rpi-gpio
 ```
 
 The script will enter an interactive shell, where GPIO inputs can be emulated. For now, keep the shell open in the background and open a new terminal. Within the new terminal, start up the RPi emulation using the run script:
