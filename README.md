@@ -262,7 +262,7 @@ $ sudo apt install git python3 python3-pexpect p7zip-full qemu-system-arm socat
 
 Proceed by cloning the [qemu-rpi-gpio repository](https://github.com/berdav/qemu-rpi-gpio), and entering its directory:
 ```
-$ git clone git@github.com:berdav/qemu-rpi-gpio.git && cd qemu-rpi-gpio
+$ git clone https://github.com/berdav/qemu-rpi-gpio.git && cd qemu-rpi-gpio
 ```
 
 Run the setup script which will install some required dependencies, fetch the latest RPi OS image, and create a mounting point for the RPi emulator.
