@@ -267,7 +267,7 @@ $ git clone https://github.com/berdav/qemu-rpi-gpio.git && cd qemu-rpi-gpio
 
 Run the setup script which will install some required dependencies, fetch the latest RPi OS image, and create a mounting point for the RPi emulator.
 ```
-$ bash qemu-rpi-gpio/setup.sh
+$ bash qemu-pi-setup/setup.sh
 ```
 
 Once the setup script has completed, run the qemu-rpi-gpio to provide the virtual GPIOs to the emulator:
@@ -279,7 +279,7 @@ $ python3 qemu-rpi-gpio
 The script will enter an interactive shell, where GPIO inputs can be emulated. For now, keep the shell open in the background and open a new terminal. Within the new terminal, start up the RPi emulation using the run script:
 
 ```
-$ bash qemu-rpi-gpio/run.sh
+$ bash qemu-pi-setup/run.sh
 ```
 
 The RPi emulator should now be up and running and you will be greeted with a login shell. At the time of writing, the default username is `pi` and the default password is `raspberry`. Once logged in, we will need to expand the disk size of the root partition, as it is currently limited to only 1.6GB.
