@@ -80,7 +80,7 @@ elif [[ "$1" == "install" || "$1" == "install-emu" ]]; then
         mkdir -p $PY_SCRIPTS_DIR/telegram
         cp -v $PROJECT_DIR/software/telegram/*.py $PY_SCRIPTS_DIR/telegram/
 
-	mkdir -P $PY_SCRIPTS_DIR/typo3
+	mkdir -p $PY_SCRIPTS_DIR/typo3
 	cp -v $PROJECT_DIR/software/typo3/*.py $PY_SCRIPTS_DIR/typo3/
 
         mkdir -p $CFG_DIR
