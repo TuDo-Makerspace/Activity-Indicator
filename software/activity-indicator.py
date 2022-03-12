@@ -52,6 +52,10 @@ class activity(Enum):
 	clsd = 0
 	opn = 1
 
+def print_journalctl(msg):
+	print(msg)
+	sys.stdout.flush()
+
 # Checks if internet connection is available
 # -
 # Returns True if connection is available, False otherwise
@@ -81,8 +85,7 @@ def set_con_led(red_pin: int, green_pin: int, state: con_led_state):
 # green_pin: GPIO pin connected to green LED
 # message: error message to print
 def error(red_pin: int, green_pin: int, message: str):
-	print(message)
-	sys.stdout.flush()
+	print_journalctl(message)
 
 	for i in range(3):
 		set_con_led(red_pin, green_pin, con_led_state.GREEN)
@@ -116,8 +119,7 @@ def saved_state(path: str):
 	with open(path, 'r') as f:
 		content = f.read()
 		if content != str(GPIO.LOW) and content != str(GPIO.HIGH):
-			print("Invalid saved state, overwriting")
-			sys.stdout.flush()
+			print_journalctl("Invalid saved state, overwriting")
 			return None
 		return int(content)
 
@@ -131,17 +133,16 @@ def call_subservices(config: configparser.ConfigParser, activity: activity):
 	for section in config.sections():
 		for option in config[section]:
 			ret = 0
+			subprocess = section + ": " + option + ": " + config[section][option]
 			if activity == activity.opn and option == "openexec":
-				print("Executing " + config[section][option])
-				sys.stdout.flush()
+				print_journalctl("Executing: " + subprocess)
 				ret = os.system(config[section][option])
 			elif activity == activity.clsd and option == "closedexec":
-				print("Executing " + config[section][option])
-				sys.stdout.flush()
+				print_journalctl("Executing: " + subprocess)
 				ret = os.system(config[section][option])
 
 			if ret != 0:
-				return section + ": " + option + ": " + config[section][option]
+				return subprocess
 
 	return ""
 
@@ -200,10 +201,10 @@ while True:
 			ret = True
 
 			if curr_state == GPIO.LOW:
-				print("Activity changed to OPEN, calling subservices")
+				print_journalctl("Activity changed to OPEN, calling subservices")
 				ret = call_subservices(config, activity.opn)
 			elif curr_state == GPIO.HIGH:
-				print("Activity changed to CLOSED, calling subservices")
+				print_journalctl("Activity changed to CLOSED, calling subservices")
 				ret = call_subservices(config, activity.clsd)
 
 			# Save activity state to file
@@ -213,9 +214,7 @@ while True:
 			if ret != "":
 				error(red_pin, green_pin, "Unexpected error while calling subservice: " + ret)
 			
-			print("All subservices executed successfully")
+			print_journalctl("All subservices executed successfully")
 
 		except Exception as e:
 			error(red_pin, green_pin, str(e))
-			
-	
