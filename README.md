@@ -61,7 +61,7 @@ The following components are required to build the Activity Indicator:
 
 - The Power LED, along with its 1k resistor in series, is connected to one of the Raspberry Pi's 5V pins.
 - The pins of the connection indicator LED are connected any of the Raspberry Pi's GPIO pins. Ensure the common ground pin has a 100 Ohm resistor connected in series. 
-- For the Switch, one end is connected to the Raspberry Pi's GPIO pin, and the other end is connected to one of the RPI's ground pins.
+- For the Switch, one end is connected to the Raspberry Pi's GPIO pin, and the other end is connected to one of the RPi's ground pins.
 
 One possible configuration for the Raspberry Pi Zero W is shown below:
 
@@ -139,6 +139,10 @@ ConLEDRed = 21
 OpenExec = /usr/bin/python3 /usr/share/pyshared/activity-indicator/telegram/telegram-activity-indicator.py -c /var/lib/activity-indicator/telegram.ini open
 ClosedExec = /usr/bin/python3 /usr/share/pyshared/activity-indicator/telegram/telegram-activity-indicator.py -c /var/lib/activity-indicator/telegram.ini closed
 
+; [typo3]
+; OpenExec = /usr/bin/python3 /usr/share/pyshared/activity-indicator/typo3/typo3-activity-indicator.py -c /var/lib/activity-indicator/typo3.ini open
+; ClosedExec = /usr/bin/python3 /usr/share/pyshared/activity-indicator/typo3/typo3-activity-indicator.py -c /var/lib/activity-indicator/typo3.ini closed
+
 ; [your_subservice_name]
 ; OpenExec = COMMAND TO RUN WHEN ACTIVITY HAS CHANGED TO OPEN
 ; ClosedExec = COMMAND TO RUN WHEN ACTIVITY HAS CHANGED TO CLOSED
@@ -147,6 +151,8 @@ ClosedExec = /usr/bin/python3 /usr/share/pyshared/activity-indicator/telegram/te
 Make sure to assign the correct GPIOs to your own configuration if they do not already match the ones above.
 
 The `[telegram]` section provides the commands to execute the telegram-bot subservice. If you do not wish to use a telegram bot for the activity indicator, comment out or remove this entry.
+
+The `[typo3]` section provides the commands to update the activity status on a TYPO3 website with the Activity Indicator extension installed. Since this is more specific to our Makerspace's website than the Telegram bot is, it is commented out by default. Should you be running a TYPO3 website too, you can gladly install the [Activity-Indicator extension](https://github.com/TU-DO-Makerspace/TYPO3-ActivityIndicator) and uncomment this section. 
 
 Adding additional subservices is elaborated further in the ["Adding custom subservices" section](#adding-custom-subservices) below. 
 
@@ -190,6 +196,31 @@ OpenMessage = TUDO is open!
 ClosedMessage = TUDO is closed!
 ```
 
+#### Connecting the Activity Indicator to the TYPO3 Activity Indicator extension
+
+> Note: Skip this section if you're not planning to connect the Activity indicator to the TYPO3 Activity Indicator extension.
+
+Before configuring the Activity Indicator software, ensure that your TYPO3 instance has the Activity Indicator extension installed and configured. Should this not be the case, please refer to the ~~documentation of the [TYPO3 Activity Indicator extension](https://github.com/TU-DO-Makerspace/TYPO3-ActivityIndicator)~~ (Not available yet).
+
+Once the extension is installed and configured, you can connect the Activity Indicator to the extension by editing the [typo3.ini configuration file](software/typo3/typo3.ini) located at [software/typo3/typo3.ini](software/typo3/typo3.ini). By default the configuration file will contain the following content:
+
+```
+[api]
+Username = INSERT YOUR HTTP BASIC AUTH USERNAME HERE
+Password = INSERT YOUR HTTP BASIC AUTH PASSWORD HERE
+URL = INSRET YOUR WEBSITE URL HERE
+```
+
+The configuration file requires the HTTP Basic Auth username and password to obtain access the extensions rest API, as well as a ULR to the TYPO3 website with the Activity Indicator extension installed.
+
+An example configuration could look like this:
+```
+[api]
+Username = activityindicator
+Password = 123456789
+URL = https://tu-do.net
+```
+
 #### Adding custom subservices
 
 Adding a custom subservice is as simple as adding a new section to the activity-indicator configuration file. The section name should describe the subservice, and the commands to execute should be specified in the `OpenExec` and `ClosedExec` entries.
@@ -200,8 +231,8 @@ As an example, suppose we wish to save the current time every time the activity 
 
 ```
 [time]
-OpenExec = echo "Opened: $(date)" >> ~/opening_times.txt
-ClosedExec = echo "Closed: $(date)" >> ~/closing_times.txt
+OpenExec = echo "$(date)" >> ~/opening_times.txt
+ClosedExec = echo "$(date)" >> ~/closing_times.txt
 ```
 
 ### Installation
@@ -231,7 +262,7 @@ $ sudo ./setup.sh uninstall
 
 ## Emulation
 
-![RPi Emulation](docs/RPIEmu.png)
+![RPi Emulation](docs/RPiEmu.png)
 
 When developing new features for the Activity Indicator, it  may be comfortable emulate the Activity Indicator in a virtual Raspberry Pi emulation instead of needing to access physical Raspberry Pi board. Thankfully, [qemu](https://www.qemu.org/), along with [berdav's qemu-rpi-gpio tool](https://github.com/berdav/qemu-rpi-gpio), can be used to run a a virtual Raspberry Pi with support for GPIO emulation.
 
