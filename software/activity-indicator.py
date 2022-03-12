@@ -43,21 +43,21 @@ SAVED_STATE_PATH = ADD_DATA_PATH + "/saved_state" # Path to save states to
 
 # Enum for connection indicator LED
 class con_led_state(Enum):
-        OFF = 0
-        RED = 1
-        GREEN = 2
+	OFF = 0
+	RED = 1
+	GREEN = 2
 
 # Enum for possible activity states
 class activity(Enum):
-        clsd = 0
-        opn = 1
+	clsd = 0
+	opn = 1
 
 # Checks if internet connection is available
 # -
 # Returns True if connection is available, False otherwise
 def check_connection():
-        ret = ping('google.com')
-        return ret != None and ret != False
+	ret = ping('google.com')
+	return ret != None and ret != False
 
 # Sets the connection indicator LED
 # -
@@ -65,15 +65,15 @@ def check_connection():
 # green_pin: GPIO pin connected to green LED
 # state: con_led_state enum, specifying the color of the LED
 def set_con_led(red_pin: int, green_pin: int, state: con_led_state):
-        if state == con_led_state.OFF:
-                GPIO.output(red_pin, GPIO.LOW)
-                GPIO.output(green_pin, GPIO.LOW)
-        elif state == con_led_state.RED:
-                GPIO.output(red_pin, GPIO.HIGH)
-                GPIO.output(green_pin, GPIO.LOW)
-        elif state == con_led_state.GREEN:
-                GPIO.output(red_pin, GPIO.LOW)
-                GPIO.output(green_pin, GPIO.HIGH)
+	if state == con_led_state.OFF:
+		GPIO.output(red_pin, GPIO.LOW)
+		GPIO.output(green_pin, GPIO.LOW)
+	elif state == con_led_state.RED:
+		GPIO.output(red_pin, GPIO.HIGH)
+		GPIO.output(green_pin, GPIO.LOW)
+	elif state == con_led_state.GREEN:
+		GPIO.output(red_pin, GPIO.LOW)
+		GPIO.output(green_pin, GPIO.HIGH)
 
 # Prints error message, blinks the connection LED green and red 3x, cleans up the GPIOs and exits
 # -
@@ -81,21 +81,21 @@ def set_con_led(red_pin: int, green_pin: int, state: con_led_state):
 # green_pin: GPIO pin connected to green LED
 # message: error message to print
 def error(red_pin: int, green_pin: int, message: str):
-        print(message)
-        sys.stdout.flush()
+	print(message)
+	sys.stdout.flush()
 
-        for i in range(3):
-                set_con_led(red_pin, green_pin, con_led_state.GREEN)
-                time.sleep(0.5)
-                set_con_led(red_pin, green_pin, con_led_state.OFF)
-                time.sleep(0.5)
-                set_con_led(red_pin, green_pin, con_led_state.RED)
-                time.sleep(0.5)
-                set_con_led(red_pin, green_pin, con_led_state.OFF)
-                time.sleep(0.5)
+	for i in range(3):
+		set_con_led(red_pin, green_pin, con_led_state.GREEN)
+		time.sleep(0.5)
+		set_con_led(red_pin, green_pin, con_led_state.OFF)
+		time.sleep(0.5)
+		set_con_led(red_pin, green_pin, con_led_state.RED)
+		time.sleep(0.5)
+		set_con_led(red_pin, green_pin, con_led_state.OFF)
+		time.sleep(0.5)
 
-        GPIO.cleanup()
-        sys.exit(1)
+	GPIO.cleanup()
+	sys.exit(1)
 
 # Saves the current state of the activity switch to a file.
 # This is used to retrieve previous states in case of a unexpected shutdown
@@ -104,22 +104,22 @@ def error(red_pin: int, green_pin: int, message: str):
 # path: path to the file to save the state to
 # state: the state to save (GPIO.LOW or GPIO.HIGH)
 def save_state(path: str, state:int):
-        with open(path, 'w') as f:
-                f.write(str(state))
+	with open(path, 'w') as f:
+		f.write(str(state))
 
 # Retrieves the saved state of the activity switch from the file
 # -
 # path: path to the file to read the state from
 def saved_state(path: str):
-        if not os.path.exists(path):
-                return None
-        with open(path, 'r') as f:
-                content = f.read()
-                if content != str(GPIO.LOW) and content != str(GPIO.HIGH):
-                        print("Invalid saved state, overwriting")
-                        sys.stdout.flush()
-                        return None
-                return int(content)
+	if not os.path.exists(path):
+		return None
+	with open(path, 'r') as f:
+		content = f.read()
+		if content != str(GPIO.LOW) and content != str(GPIO.HIGH):
+			print("Invalid saved state, overwriting")
+			sys.stdout.flush()
+			return None
+		return int(content)
 
 # Calls all sub-services specified in the config file
 # If the provided activity is open, the 'openexec' command is executed,
@@ -128,32 +128,32 @@ def saved_state(path: str):
 # config: configparser object containing the config file
 # activity: activity enum, specifying new activity state
 def call_subservices(config: configparser.ConfigParser, activity: activity):
-        for section in config.sections():
-                for option in config[section]:
-                        ret = 0
-                        if activity == activity.opn and option == "openexec":
-                                print("Executing " + config[section][option])
-                                sys.stdout.flush()
-                                ret = os.system(config[section][option])
-                        elif activity == activity.clsd and option == "closedexec":
-                                print("Executing " + config[section][option])
-                                sys.stdout.flush()
-                                ret = os.system(config[section][option])
+	for section in config.sections():
+		for option in config[section]:
+			ret = 0
+			if activity == activity.opn and option == "openexec":
+				print("Executing " + config[section][option])
+				sys.stdout.flush()
+				ret = os.system(config[section][option])
+			elif activity == activity.clsd and option == "closedexec":
+				print("Executing " + config[section][option])
+				sys.stdout.flush()
+				ret = os.system(config[section][option])
 
-                        if ret != 0:
-                                return False
+			if ret != 0:
+				return section + ": " + option + ": " + config[section][option]
 
-        return True
+	return ""
 
 # --- MAIN --- #
 
 # Parse arguments
 parser = argparse.ArgumentParser(description='Handles the activity indicator')
 parser.add_argument(
-        '-c', '--config',
-        default = os.path.dirname(os.path.realpath(__file__)) + '/activity-indicator.ini',
-        type = str,
-        help = 'Path to configuration file'
+	'-c', '--config',
+	default = os.path.dirname(os.path.realpath(__file__)) + '/activity-indicator.ini',
+	type = str,
+	help = 'Path to configuration file'
 )
 args = parser.parse_args()
 config = configparser.ConfigParser()
@@ -161,9 +161,9 @@ config.read(args.config)
 
 # Create app data path if it does not exist
 try:
-        pathlib.Path(ADD_DATA_PATH).mkdir(parents=True, exist_ok=True)
+	pathlib.Path(ADD_DATA_PATH).mkdir(parents=True, exist_ok=True)
 except Exception as e:
-        error(args.CON_LED_RED_GPIO, args.CON_LED_GREEN_GPIO, str(e))
+	error(args.CON_LED_RED_GPIO, args.CON_LED_GREEN_GPIO, str(e))
 
 # Set GPIO's
 switch_pin = int(config['GPIO']['Switch'])
@@ -177,40 +177,45 @@ GPIO.setup(green_pin, GPIO.OUT)
 
 # Check if saved state data exists, create if not
 if saved_state(SAVED_STATE_PATH) == None:
-        try:
-                save_state(SAVED_STATE_PATH, GPIO.input(switch_pin))
-        except Exception as e:
-                error(red_pin, green_pin, str(e))
+	try:
+		save_state(SAVED_STATE_PATH, GPIO.input(switch_pin))
+	except Exception as e:
+		error(red_pin, green_pin, str(e))
 
 # Compare to last saved state
 prev_state = saved_state(SAVED_STATE_PATH)
 
 # Main loop
 while True:
-        # Check if connection is available
-        while not check_connection():
-                set_con_led(red_pin, green_pin, con_led_state.RED)
+	# Check if connection is available
+	while not check_connection():
+		set_con_led(red_pin, green_pin, con_led_state.RED)
 
-        set_con_led(red_pin, green_pin, con_led_state.GREEN)
-        curr_state = GPIO.input(switch_pin)
+	set_con_led(red_pin, green_pin, con_led_state.GREEN)
+	curr_state = GPIO.input(switch_pin)
 
-        # Activity changed, call subservices
-        if curr_state != prev_state:
-                try:
-                        ret = True
-                        if curr_state == GPIO.LOW:
-                                ret = call_subservices(config, activity.opn)
-                        elif curr_state == GPIO.HIGH:
-                                ret = call_subservices(config, activity.clsd)
+	# Activity changed, call subservices
+	if curr_state != prev_state:
+		try:
+			ret = True
 
-                        # Save activity state to file
-                        prev_state = curr_state
-                        save_state(SAVED_STATE_PATH, prev_state)
+			if curr_state == GPIO.LOW:
+				print("Activity changed to OPEN, calling subservices")
+				ret = call_subservices(config, activity.opn)
+			elif curr_state == GPIO.HIGH:
+				print("Activity changed to CLOSED, calling subservices")
+				ret = call_subservices(config, activity.clsd)
 
-                        if not ret:
-                                error(red_pin, green_pin, "Unexpected error while calling subservices")
+			# Save activity state to file
+			prev_state = curr_state
+			save_state(SAVED_STATE_PATH, prev_state)
 
-                except Exception as e:
-                        error(red_pin, green_pin, str(e))
-                        
-        
+			if ret != "":
+				error(red_pin, green_pin, "Unexpected error while calling subservice: " + ret)
+			
+			print("All subservices executed successfully")
+
+		except Exception as e:
+			error(red_pin, green_pin, str(e))
+			
+	
