@@ -111,7 +111,8 @@ else
         echo "Usage: ./setup.sh [help|install|uninstall|dependencies]"
         echo
         echo -e "\thelp:\t\tDisplays this message"
-        echo -e "\tinstall:\tSets up and enables the Activity indicator"
+        echo -e "\tinstall:\tSets up and enables the Activity Indicator"
+        echo -e "\tinstall-emu:\tSets up and enables the Activity Indicator on a QEMU instance"
         echo -e "\tuninstall:\tStops and removes the Activity Indicator software"
         echo -e "\tdependencies:\tInstalls required software dependencies"
         echo
