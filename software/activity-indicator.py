@@ -82,13 +82,14 @@ def set_con_led(red_pin: int, green_pin: int, state: con_led_state):
 		GPIO.output(red_pin, GPIO.LOW)
 		GPIO.output(green_pin, GPIO.HIGH)
 
-# Prints error message, blinks the connection LED green and red 3x, cleans up the GPIOs and exits
+# Prints error message, blinks the connection LED green and red 3x,
+# cleans up the GPIOs and exits
 # -
 # red_pin: GPIO pin connected to red LED
 # green_pin: GPIO pin connected to green LED
 # message: error message to print
 def error(red_pin: int, green_pin: int, message: str):
-	print_journalctl(message)
+	print_journalctl("FATAL ERROR: " + message)
 
 	for i in range(3):
 		set_con_led(red_pin, green_pin, con_led_state.GREEN)
@@ -136,8 +137,9 @@ def saved_state(path: str):
 # config: configparser object containing the config file
 # activity: activity enum, specifying new activity state
 # -
-# Returns empty string ("") on success, a string of the executed subprocess on failure
+# Returns True if all subprocesses executed successfully, False if one or more subprocesses failed
 def call_subservices(config: configparser.ConfigParser, activity: activity):
+	success = True
 	for section in config.sections():
 		for option in config[section]:
 			ret = 0
@@ -150,9 +152,9 @@ def call_subservices(config: configparser.ConfigParser, activity: activity):
 				ret = os.system(config[section][option])
 
 			if ret != 0:
-				return subprocess
-
-	return ""
+				print("Unexpected error while calling subservice: " + subprocess)
+				success = False
+	return success
 
 # --- MAIN --- #
 
@@ -219,8 +221,8 @@ while True:
 			prev_state = curr_state
 			save_state(SAVED_STATE_PATH, prev_state)
 
-			if ret != "":
-				error(red_pin, green_pin, "Unexpected error while calling subservice: " + ret)
+			if not ret:
+				error(red_pin, green_pin, "One or more subprocesses failed")
 			
 			print_journalctl("All subservices executed successfully")
 
