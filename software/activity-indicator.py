@@ -49,8 +49,8 @@ class con_led_state(Enum):
 
 # Enum for possible activity states
 class activity(Enum):
-	clsd = 0
-	opn = 1
+	CLOSED = 0
+	OPEN = 1
 
 # Wrapper for print to work with journalctl logs
 # -
@@ -104,6 +104,20 @@ def error(red_pin: int, green_pin: int, message: str):
 	GPIO.cleanup()
 	sys.exit(1)
 
+# Converts a GPIO state to an activity state
+# Since the switch is connected via a pull-up resistor,
+# a HIGH input means the switch is set to CLOSED, and a LOW
+# input means the switch is set to OPEN
+# -
+# state: GPIO state to convert
+# -
+# Returns the activity state
+def GPIO_to_activity(state: int):
+	if state == GPIO.LOW:
+		return activity.OPEN
+	else:
+		return activity.CLOSED
+
 # Saves the current state of the activity switch to a file.
 # This is used to retrieve/remember the previous state of the
 # Activity Indicator in case of an unexpected shutdown or program 
@@ -111,9 +125,9 @@ def error(red_pin: int, green_pin: int, message: str):
 # -
 # path: path to the file to save the state to
 # state: the state to save (GPIO.LOW or GPIO.HIGH)
-def save_state(path: str, state:int):
+def save_state(path: str, state: activity):
 	with open(path, 'w') as f:
-		f.write(str(state))
+		f.write(state.name)
 
 # Retrieves the saved state of the activity switch from the file
 # -
@@ -125,11 +139,14 @@ def saved_state(path: str):
 		return None
 	with open(path, 'r') as f:
 		content = f.read()
-		if content != str(GPIO.LOW) and content != str(GPIO.HIGH):
-			print_journalctl("Invalid saved state, overwriting")
+		if (content == activity.OPEN.name):
+			return activity.OPEN
+		elif (content == activity.CLOSED.name):
+			return activity.CLOSED
+		else:
+			print_journalctl("Unknown saved state: " + content)
 			return None
-		return int(content)
-
+	
 # Calls all sub-services specified in the config file
 # If the provided activity is open, the 'openexec' command is executed,
 # If the provided activity is closed, the 'closedexec' command is executed
@@ -137,22 +154,22 @@ def saved_state(path: str):
 # config: configparser object containing the config file
 # activity: activity enum, specifying new activity state
 # -
-# Returns True if all subprocesses executed successfully, False if one or more subprocesses failed
+# Returns True if all subservices executed successfully, False if one or more subservices failed
 def call_subservices(config: configparser.ConfigParser, activity: activity):
 	success = True
 	for section in config.sections():
 		for option in config[section]:
 			ret = 0
-			subprocess = section + ": " + option + ": " + config[section][option]
-			if activity == activity.opn and option == "openexec":
-				print_journalctl("Executing: " + subprocess)
+			service = section + ": " + option + ": " + config[section][option]
+			if activity == activity.OPEN and option == "openexec":
+				print_journalctl("Executing: " + service)
 				ret = os.system(config[section][option])
-			elif activity == activity.clsd and option == "closedexec":
-				print_journalctl("Executing: " + subprocess)
+			elif activity == activity.CLOSED and option == "closedexec":
+				print_journalctl("Executing: " + service)
 				ret = os.system(config[section][option])
 
 			if ret != 0:
-				print("Unexpected error while calling subservice: " + subprocess)
+				print("Unexpected error while calling subservice: " + service)
 				success = False
 	return success
 
@@ -189,7 +206,7 @@ GPIO.setup(green_pin, GPIO.OUT)
 # Check if saved state data exists, create if not
 if saved_state(SAVED_STATE_PATH) == None:
 	try:
-		save_state(SAVED_STATE_PATH, GPIO.input(switch_pin))
+		save_state(SAVED_STATE_PATH, GPIO_to_activity(GPIO.input(switch_pin)))
 	except Exception as e:
 		error(red_pin, green_pin, str(e))
 
@@ -203,26 +220,21 @@ while True:
 		set_con_led(red_pin, green_pin, con_led_state.RED)
 
 	set_con_led(red_pin, green_pin, con_led_state.GREEN)
-	curr_state = GPIO.input(switch_pin)
+	curr_state = GPIO_to_activity(GPIO.input(switch_pin))
 
 	# Activity changed, call subservices
 	if curr_state != prev_state:
 		try:
-			ret = True
-
-			if curr_state == GPIO.LOW:
-				print_journalctl("Activity changed to OPEN, calling subservices")
-				ret = call_subservices(config, activity.opn)
-			elif curr_state == GPIO.HIGH:
-				print_journalctl("Activity changed to CLOSED, calling subservices")
-				ret = call_subservices(config, activity.clsd)
+			# Call subservices
+			print_journalctl("Activity changed to: " + str(curr_state.name) +", calling subservices")
+			ret = call_subservices(config, curr_state)
 
 			# Save activity state to file
 			prev_state = curr_state
 			save_state(SAVED_STATE_PATH, prev_state)
 
 			if not ret:
-				error(red_pin, green_pin, "One or more subprocesses failed")
+				error(red_pin, green_pin, "One or more subservices failed")
 			
 			print_journalctl("All subservices executed successfully")
 
