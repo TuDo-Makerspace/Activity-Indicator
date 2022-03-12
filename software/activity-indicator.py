@@ -52,9 +52,12 @@ class activity(Enum):
 	clsd = 0
 	opn = 1
 
+# Wrapper for print to work with journalctl logs
+# -
+# msg - Message to be printed
 def print_journalctl(msg):
 	print(msg)
-	sys.stdout.flush()
+	sys.stdout.flush() # Needed, else print won't appear in journalctl log
 
 # Checks if internet connection is available
 # -
@@ -101,8 +104,9 @@ def error(red_pin: int, green_pin: int, message: str):
 	sys.exit(1)
 
 # Saves the current state of the activity switch to a file.
-# This is used to retrieve previous states in case of a unexpected shutdown
-# or program crash.
+# This is used to retrieve/remember the previous state of the
+# Activity Indicator in case of an unexpected shutdown or program 
+# crash.
 # -
 # path: path to the file to save the state to
 # state: the state to save (GPIO.LOW or GPIO.HIGH)
@@ -113,6 +117,8 @@ def save_state(path: str, state:int):
 # Retrieves the saved state of the activity switch from the file
 # -
 # path: path to the file to read the state from
+# -
+# Returns the activity status from the file
 def saved_state(path: str):
 	if not os.path.exists(path):
 		return None
@@ -129,6 +135,8 @@ def saved_state(path: str):
 #  -
 # config: configparser object containing the config file
 # activity: activity enum, specifying new activity state
+# -
+# Returns empty string ("") on success, a string of the executed subprocess on failure
 def call_subservices(config: configparser.ConfigParser, activity: activity):
 	for section in config.sections():
 		for option in config[section]:
