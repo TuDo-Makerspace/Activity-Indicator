@@ -27,7 +27,7 @@ CFG_DIR=/var/lib/activity-indicator
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 PROJECT_DIR="$SCRIPT_DIR"
 
-APT_DEPENDENCIES="python3 python3-pip python3-dev"
+APT_DEPENDENCIES="python3 python3-pip python3-dev python3-requests"
 
 emu_mount_fixed_cpuinfo() {
 	mkdir -p $CFG_DIR
@@ -80,9 +80,13 @@ elif [[ "$1" == "install" || "$1" == "install-emu" ]]; then
         mkdir -p $PY_SCRIPTS_DIR/telegram
         cp -v $PROJECT_DIR/software/telegram/*.py $PY_SCRIPTS_DIR/telegram/
 
+	mkdir -P $PY_SCRIPTS_DIR/typo3
+	cp -v $PROJECT_DIR/software/typo3/*.py $PY_SCRIPTS_DIR/typo3/
+
         mkdir -p $CFG_DIR
         cp -v $PROJECT_DIR/software/activity-indicator.ini $CFG_DIR/activity-indicator.ini
         cp -v $PROJECT_DIR/software/telegram/telegram.ini $CFG_DIR/telegram.ini
+	cp -v $PROJECT_DIR/software/typo3/typo3.ini $CFG_DIR/typo3.ini
 
         echo "Setting up systemd service..."
         bash $PROJECT_DIR/software/systemd/setup.sh install
