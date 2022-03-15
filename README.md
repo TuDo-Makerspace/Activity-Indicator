@@ -264,7 +264,7 @@ $ sudo ./setup.sh uninstall
 
 ![RPi Emulation](docs/RPiEmu.png)
 
-When developing new features for the Activity Indicator, it  may be comfortable emulate the Activity Indicator in a virtual Raspberry Pi emulation instead of needing to access physical Raspberry Pi board. Thankfully, [qemu](https://www.qemu.org/), along with [berdav's qemu-rpi-gpio tool](https://github.com/berdav/qemu-rpi-gpio), can be used to run a a virtual Raspberry Pi with support for GPIO emulation.
+When developing new features for the Activity Indicator, it  may be comfortable to emulate the Activity Indicator in a virtual Raspberry Pi emulation instead of needing to access physical Raspberry Pi board. Thankfully, [qemu](https://www.qemu.org/), along with [berdav's qemu-rpi-gpio tool](https://github.com/berdav/qemu-rpi-gpio), can be used to run a a virtual Raspberry Pi with support for GPIO emulation.
 
 ### Prerequisites
 
