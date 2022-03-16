@@ -6,7 +6,7 @@
                 {
                         "label": "Push project to RPI",
                         "type": "shell",
-                        "command": "${workspaceFolder}/tools/ssh_sync.sh raspberrypi",
+                        "command": "${workspaceFolder}/tools/ssh_sync.sh pi@localhost 50022",
                 }
         ]
 }
