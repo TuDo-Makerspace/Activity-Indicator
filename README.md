@@ -32,6 +32,7 @@ A physical switch that informs everyone whether the TU-DO Makerspace is currentl
 The following communication channels are currently offered to obtain infromation about the Makerspace's activity status:
 
  - <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Telegram_logo.svg/2048px-Telegram_logo.svg.png" alt="Telegram icon" width="15"/> [TU-DO Activity Telegram Channel](https://t.me/+MW8nzEwFLuFiOGE0)
+ - [The TU-DO Website](https://tu-do.net/)
 
 ## Overview
 
