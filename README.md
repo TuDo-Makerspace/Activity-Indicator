@@ -19,6 +19,7 @@ A physical switch that informs everyone whether the TU-DO Makerspace is currentl
   - [Configuring the software](#configuring-the-software)
     - [Setting up the main configuration file](#setting-up-the-main-configuration-file)
     - [Setting up the telegram bot](#setting-up-the-telegram-bot)
+    - [Connecting the Activity Indicator to the TYPO3 Activity Indicator extension](#connecting-the-activity-indicator-to-the-typo3-activity-indicator-extension)
     - [Adding custom subservices](#adding-custom-subservices)
   - [Installation](#installation)
 - [Emulation](#emulation)
