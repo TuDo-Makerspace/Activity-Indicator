@@ -113,6 +113,8 @@ Unexpected errors are also handled: Should an unexpected error occur during exec
 
 #### Telegram Bot
 
+![](docs/TelegramScreenshot.png)
+
 The scripts and configuration files to run a telegram bot can be found in the [software/telegram](software/telegram) folder.
 
 The [telegram-activity-indicator.py](software/telegram/telegram-activity-indicator.py) script is responsible for sending
@@ -121,7 +123,20 @@ an opening and closing message to one or more chats. Chats, along with their ope
 The script takes a path to a configuration file (`-c`, if not specified, set to `telegram.ini`) and a activity status (`open` or `closed`) as an argument. It also offers you to set the log level using the `-l` flag, which is set to `INFO` if left out.
 The full script usage can be printed by providing it the `-h` option.
 
-While [telegram-activity-indicator.py](software/telegram/telegram-activity-indicator.py) script can be executed manually, it has been written with the intention of being executed by the activity-indicator service in mind. Should you want to make use of a telegram bot, then [telegram-activity-indicator.py](software/telegram/telegram-activity-indicator.py) must be specified in the [activity-indicator.ini](software/activity-indicator.ini) configuration file. The default [activity-indicator.ini](software/activity-indicator.ini) provided in this repo is already set to do that.
+> While [telegram-activity-indicator.py](software/telegram/telegram-activity-indicator.py) script can be executed manually, it has been written with the intention of being executed by the activity-indicator service in mind. Should you want to make use of a telegram bot, then [telegram-activity-indicator.py](software/telegram/telegram-activity-indicator.py) must be specified in the [activity-indicator.ini](software/activity-indicator.ini) configuration file. The default [activity-indicator.ini](software/activity-indicator.ini) provided in this repo is already set to do that.
+
+#### TYPO3
+
+![](docs/TYPO3Screenshot.png)
+
+Since our Makerspace's website uses the TYPO3 CMS, we have developed a TYPO3 extension to display the current activity status on the website. The extension can be found [here](https://github.com/TU-DO-Makerspace/TYPO3-ActivityIndicator) and can be controlled through a REST API. 
+
+The scripts and configuration files reuired to connect the Activity Indicator to the TYPO3 extension can be found in the [software/typo3](software/typo3) folder.
+
+The [typo3-activity-indicator.py](software/typo3/typo3-activity-indicator.py) script is responsible sending the current activity status to the TYPO3 extension via a POST REST API request. The script takes a path to a configuration file (`-c`, if not specified, set to `typo3.ini`), which holds HTTP Basic Auth credentials  and the API URL, and takes a activity status (`open` or `closed`) as an argument.
+The full script usage can be printed by providing it the `-h` option.
+
+> While [typo3-activity-indicator.py](software/typo3/typo3-activity-indicator.py) script can be executed manually, it has been written with the intention of being executed by the activity-indicator service in mind. Should you want to make use of a typo3 bot, then [typo3-activity-indicator.py](software/typo3/typo3-activity-indicator.py) must be specified in the [activity-indicator.ini](software/activity-indicator.ini) configuration file. The default [activity-indicator.ini](software/activity-indicator.ini) provided in this repo is already set to do that.
 
 ### Configuring the software
 
