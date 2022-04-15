@@ -15,6 +15,7 @@ A physical switch that informs everyone whether the TU-DO Makerspace is currentl
   - [An Overview of the Software](#an-overview-of-the-software)
     - [activity-indicator.py](#activity-indicatorpy)
     - [Telegram Bot](#telegram-bot)
+    - [TYPO3 Extension](#typo3-extension)
   - [Configuring the software](#configuring-the-software)
     - [Setting up the main configuration file](#setting-up-the-main-configuration-file)
     - [Setting up the telegram bot](#setting-up-the-telegram-bot)
@@ -125,7 +126,7 @@ The full script usage can be printed by providing it the `-h` option.
 
 > While [telegram-activity-indicator.py](software/telegram/telegram-activity-indicator.py) script can be executed manually, it has been written with the intention of being executed by the activity-indicator service in mind. Should you want to make use of a telegram bot, then [telegram-activity-indicator.py](software/telegram/telegram-activity-indicator.py) must be specified in the [activity-indicator.ini](software/activity-indicator.ini) configuration file. The default [activity-indicator.ini](software/activity-indicator.ini) provided in this repo is already set to do that.
 
-#### TYPO3
+#### TYPO3 Extension
 
 ![](docs/TYPO3Screenshot.png)
 
