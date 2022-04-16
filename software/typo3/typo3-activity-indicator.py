@@ -52,7 +52,6 @@ args = parser.parse_args()
 config = configparser.ConfigParser()
 config.read(args.config_file)
 
-# Read config file
 uname = config['api']['Username']
 pwd = config['api']['Password']
 url = config['api']['URL']
