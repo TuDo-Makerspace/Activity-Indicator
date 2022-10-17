@@ -26,6 +26,7 @@
 #       be run manually. The GPIOs for the activity switch, as well as the connection
 #       indicator LED must be specified in the config file.
 
+from asyncio import wait_for
 import os
 import sys
 import pathlib
@@ -40,6 +41,7 @@ from ping3 import ping
 # Constants
 ADD_DATA_PATH = "/var/lib/activity-indicator" # App data path
 SAVED_STATE_PATH = ADD_DATA_PATH + "/saved_state" # Path to save states to
+RESET_WIFI_TIMEOUT = 60 # Seconds
 
 # Enum for connection indicator LED
 class con_led_state(Enum):
@@ -173,6 +175,48 @@ def call_subservices(config: configparser.ConfigParser, activity: activity):
 				success = False
 	return success
 
+# Waits until a connection to the internet is available
+# If a connection is available, true is returned.
+# If a connection is not available after the provided timeout
+# in seconds, false is returned.
+#
+# NOTE: This function will block until a connection is available
+# -
+# timeout: timeout in seconds
+# -
+# Returns True if a connection is available, False if a connection is not available after the timeout
+def wait_for_connection(timeout_s: int):
+	timeout = time.time() + timeout_s
+	while not check_connection():
+		if time.time() >= timeout:
+			return False
+	return True
+
+# Handles WiFi connection related tasks, such as
+# - Checking if a connection is available
+# - Setting the connection indicator LED
+# - Attempting to reconnect to the WiFi network
+#
+# If the functon fails to connect to the WiFi network after 60 seconds, it will
+# raise a ConnectionError exception.
+#
+# NOTE: This function will block until a connection is available
+# -
+# red_pin: GPIO pin connected to red LED
+# green_pin: GPIO pin connected to green LED
+# -
+def handle_connection(red_pin: int, green_pin: int):
+	if not check_connection():
+		set_con_led(red_pin, green_pin, con_led_state.RED)
+		if not wait_for_connection(RESET_WIFI_TIMEOUT):
+			raise ConnectionError("No connection available after timeout")
+	set_con_led(red_pin, green_pin, con_led_state.GREEN)
+
+# Resets the WiFi connection by restarting the WiFi interface
+def reset_wifi():
+	os.system("ifconfig wlan0 down")
+	os.system("ifconfig wlan0 up")
+
 # --- MAIN --- #
 
 # Parse arguments
@@ -213,13 +257,25 @@ if saved_state(SAVED_STATE_PATH) == None:
 # Compare to last saved state
 prev_state = saved_state(SAVED_STATE_PATH)
 
+# Used to check if we've successfully re-established internet connection
+prev_wifi_state = True
+
 # Main loop
 while True:
-	# Check if connection is available
-	while not check_connection():
-		set_con_led(red_pin, green_pin, con_led_state.RED)
+	# Check connection
+	try:
+		handle_connection(red_pin, green_pin)
+	except ConnectionError as e:
+		print_journalctl("Failed to establish connection, resetting WiFi interface and retrying...")
+		reset_wifi()
+		prev_wifi_state = False
+		continue
+	
+	if not prev_wifi_state:
+		print_journalctl("Successfully re-established connection!")
+		prev_wifi_state = True
 
-	set_con_led(red_pin, green_pin, con_led_state.GREEN)
+	# Fetch position of switch
 	curr_state = GPIO_to_activity(GPIO.input(switch_pin))
 
 	# Activity changed, call subservices
