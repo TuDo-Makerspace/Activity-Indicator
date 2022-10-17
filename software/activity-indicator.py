@@ -39,6 +39,11 @@ from enum import Enum
 from ping3 import ping
 
 # Constants
+SW_VER = "1.1.0"
+AUTHOR = "Patrick Pedersen <ctx.xda@gmail.com>, TU-DO Makerspace <tu-do.net>"
+LICENSE = "GPLv3"
+SOURCE_CODE = "https://github.com/TU-DO-Makerspace/Activity-Indicator"
+
 ADD_DATA_PATH = "/var/lib/activity-indicator" # App data path
 SAVED_STATE_PATH = ADD_DATA_PATH + "/saved_state" # Path to save states to
 RESET_WIFI_TIMEOUT = 60 # Seconds
@@ -230,6 +235,13 @@ parser.add_argument(
 args = parser.parse_args()
 config = configparser.ConfigParser()
 config.read(args.config)
+
+# Boot message
+print("=== TU-DO Activity Indicator ===")
+print("Version:\t" + SW_VER)
+print("Author:\t\t" + AUTHOR)
+print("License:\t" + LICENSE)
+print("Source code:\t" + SOURCE_CODE)
 
 # Create app data path if it does not exist
 try:
