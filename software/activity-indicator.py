@@ -39,7 +39,7 @@ from enum import Enum
 from ping3 import ping
 
 # Constants
-SW_VER = "1.1.0"
+SW_VER = "1.2.0"
 AUTHOR = "Patrick Pedersen <ctx.xda@gmail.com>, TU-DO Makerspace <tu-do.net>"
 LICENSE = "GPLv3"
 SOURCE_CODE = "https://github.com/TU-DO-Makerspace/Activity-Indicator"
@@ -239,7 +239,7 @@ config.read(args.config)
 # Boot message
 print("=== TU-DO Activity Indicator ===")
 print("Version:\t" + SW_VER)
-print("Author:\t\t" + AUTHOR)
+print("Author:\t" + AUTHOR)
 print("License:\t" + LICENSE)
 print("Source code:\t" + SOURCE_CODE)
 
