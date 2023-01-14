@@ -28,46 +28,40 @@ import logging
 import argparse
 import configparser
 import telegram
-import asyncio
 
-async def main():
-        # Parse arguments
-        parser = argparse.ArgumentParser(description='Send TUDO activity info via a Telegram bot')
-        parser.add_argument('--log_level', '-l', help='Log level', default='INFO')
-        parser.add_argument('--config_file', '-c', help='Config file', default='telegram.ini')
-        parser.add_argument(
-                'activity',
-                choices=['open', 'closed'],
-                help='Activity status'
-        )
-        args = parser.parse_args()
+# Parse arguments
+parser = argparse.ArgumentParser(description='Send TUDO activity info via a Telegram bot')
+parser.add_argument('--log_level', '-l', help='Log level', default='INFO')
+parser.add_argument('--config_file', '-c', help='Config file', default='telegram.ini')
+parser.add_argument(
+        'activity',
+        choices=['open', 'closed'],
+        help='Activity status'
+)
+args = parser.parse_args()
 
-        # Start logging
-        logging.basicConfig(level=args.log_level, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        logger = logging.getLogger(__name__)
+# Start logging
+logging.basicConfig(level=args.log_level, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
-        # Read config file
-        config = configparser.ConfigParser()
-        config.read(args.config_file)
+# Read config file
+config = configparser.ConfigParser()
+config.read(args.config_file)
 
-        # Create telegram bot object
-        tkn = config['bot']['token']
-        bot = telegram.Bot(token=tkn)
+# Create telegram bot object
+tkn = config['bot']['token']
+bot = telegram.Bot(token=tkn)
 
-        async with bot:
-                # Send activity to each chat
-                for section in config.sections():
-                        if section == "bot":
-                                continue
-                        
-                        chat_id = config[section]['ChatID']
-                        open_msg = config[section]['OpenMessage']
-                        closed_msg = config[section]['ClosedMessage']
+# Send activity to each chat
+for section in config.sections():
+        if section == "bot":
+                continue
+        
+        chat_id = config[section]['ChatID']
+        open_msg = config[section]['OpenMessage']
+        closed_msg = config[section]['ClosedMessage']
 
-                        if args.activity == "open":
-                                await bot.send_message(chat_id=chat_id, text=open_msg)
-                        elif args.activity == "closed":
-                                await bot.send_message(chat_id=chat_id, text=closed_msg)
-
-if __name__ == "__main__":
-        asyncio.run(main())
+        if args.activity == "open":
+                bot.send_message(chat_id=chat_id, text=open_msg)
+        elif args.activity == "closed":
+                bot.send_message(chat_id=chat_id, text=closed_msg)
