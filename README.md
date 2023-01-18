@@ -10,6 +10,7 @@ A physical switch that informs everyone whether the TU-DO Makerspace is currentl
 - [Hardware - Building the Activity Indicator](#hardware---building-the-activity-indicator)
   - [Components](#components)
   - [Wiring](#wiring)
+  - [Enclosure](#enclosure)
 - [Software - Setting up the Activity Indicator](#software---setting-up-the-activity-indicator)
   - [Preparation](#preparation)
   - [An Overview of the Software](#an-overview-of-the-software)
@@ -68,6 +69,12 @@ A possible configuration for the Raspberry Pi Zero W is shown below in the accom
 ![](docs/ActivityIndicatorFritzing.png)
 
 As already mentioned, the Activity Indicator is not limited to the Pi Zero W only. Any other Linux capable Raspberry Pi boards (or their compatbile clones) can be used as well. The specific GPIO pins used for the switch and the connection indicator LED can be configured in the software. Once the software for the activity indicator is set up and functioning properly, it is recommended to place the hardware in a solid enclosure.
+
+### Enclosure
+
+The repo provides a 3D-Printable enclosure for a Pi Zero based Activity Indicator in the [`enclosure`](enclosure) directory. The enclosure consists of a base, a top and a couple of "text boxes". These are provided as STL and 3MF. The [Labels.pdf](enclosure/Labels.pdf) file contains the labels meant to be glued onto the text boxes.
+
+A Fusion 360 f3z file has also been provided in the [`enclosure`](enclosure) directory if you wish to modify the enclosure.
 
 ## Software - Setting up the Activity Indicator
 
