@@ -44,9 +44,6 @@ uname = config["api"]["Username"]
 pwd = config["api"]["Password"]
 url = config["api"]["URL"]
 
-print(url + POST_ENDPOINT)
-print(uname, pwd)
-
 # Send POST request to set the activity status
 response = requests.post(
     url + POST_ENDPOINT,
