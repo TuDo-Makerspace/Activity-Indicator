@@ -2,7 +2,7 @@
 
 A physical switch that informs everyone whether the TU-DO Makerspace is currently open or closed.
 
-<img src="docs/IndicatorShowcase.png" alt="drawing" width="650"/>
+<img src="docs/IndicatorShowcase.png" alt="drawing"/>
 
 ## Table of Contents <!-- omit in toc -->
 - [Communication Channels](#communication-channels)
@@ -10,6 +10,7 @@ A physical switch that informs everyone whether the TU-DO Makerspace is currentl
 - [Hardware - Building the Activity Indicator](#hardware---building-the-activity-indicator)
   - [Components](#components)
   - [Wiring](#wiring)
+  - [Enclosure](#enclosure)
 - [Software - Setting up the Activity Indicator](#software---setting-up-the-activity-indicator)
   - [Preparation](#preparation)
   - [An Overview of the Software](#an-overview-of-the-software)
@@ -38,14 +39,11 @@ The following communication channels are currently offered to obtain infromation
 
 ## Overview
 
-The Acitivity Indicator arose from the need to inform the public about the current activity status of the Makerspace, especially during times where we cannot maintain strict opening times.
+The Activity Indicator is a device designed to inform the public about the current open/closed status of the Makerspace, particularly when regular opening times cannot be maintained. It is designed to be powered by a Raspberry Pi Zero W, however, other Linux-capable RPi's and their clones such as Banana Pi's can also be used to run it. It features two status LEDs: a red LED indicating power and a multicolor LED indicating internet connectivity (green for available, red for unavailable). The indicator is controlled by a systemd service that monitors and manages the activity switch and continuously checks for internet connectivity.
 
-The hardware behind the Activity Indicator consists of a Raspberry Pi Zero W, along with two status LEDs: One red LED indicating power, and one multicolor red and green LED indicating whether a internet connection is available (green if available, red if not).
-On top of the Raspberry Pi Zero W, a systemd service is installed which monitors and handles the activity switch and continuously checks the internet connection.
+The software for the Activity Indicator is not limited to use in the TU-DO Makerspace and can be configured to execute any desired commands upon switch events. The included script for sending Telegram messages can be configured to send notifications to multiple chats/chat groups, and allows for customization of the messages for opening and closing events.
 
-The software is by no means limited to work for applications of the TU-DO Makerspace only! It can be configured to practially execute whichever commands desired upon switch events. Even subservices found within this repo, such as [the script used to send a Telegram message](software/telegram), can be configured to operate for any chat with a configurable message for opening and closing events each
-
-A more detailed overview of the hardware and software, along with how to build and set-up your very own activity indicator is provided in the upcoming sections.
+A comprehensive guide to building and setting up your own Activity Indicator, including detailed information on the hardware and software, can be found in the forthcoming sections.
 
 ## Hardware - Building the Activity Indicator
 
@@ -54,7 +52,7 @@ A more detailed overview of the hardware and software, along with how to build a
 The following components are required to build the Activity Indicator:
 
 - A Switch
-- Any Linux capable Raspberry Pi board (We use the Pi Zero W)
+- Any Linux capable Raspberry Pi board or a compatible clone (We use the Pi Zero W)
 - A red LED for the power status
 - A multi-color common red and green LED for the internet connection indicator (Alternatively two seperate red and green LEDs can be used)
 - 1x 1k Ohm resistor for the power LED
@@ -62,17 +60,21 @@ The following components are required to build the Activity Indicator:
 
 ### Wiring
 
-- The Power LED, along with its 1k resistor in series, is connected to one of the Raspberry Pi's 5V pins.
-- The pins of the connection indicator LED are connected any of the Raspberry Pi's GPIO pins. Ensure the common ground pin has a 100 Ohm resistor connected in series. 
-- For the Switch, one end is connected to the Raspberry Pi's GPIO pin, and the other end is connected to one of the RPi's ground pins.
+- Connect the anode (+) of the Power LED, with a 1k resistor in series, to one of the Raspberry Pi's 5V pins, and connect the cathode (-) of the LED to one of the ground pins.
+- Connect the pins of the connection indicator LED to any of the Raspberry Pi's GPIO pins. Ensure that the common ground pin has a 100 Ohm resistor connected in series. 
+- For the Switch, connect one end to a GPIO pin on the Raspberry Pi, and the other end to one of the RPi's ground pins.
 
-One possible configuration for the Raspberry Pi Zero W is shown below:
+A possible configuration for the Raspberry Pi Zero W is shown below in the accompanying diagram:
 
 ![](docs/ActivityIndicatorFritzing.png)
 
-As already mentioned above, the Activity Indicator is not limited to the Pi Zero W only. Any other Linux capable Raspberry Pi boards can be used as well. Which GPIOs are used for the switch and the connection indicator LED is up to the user, as those will later be configured in the software.
+As already mentioned, the Activity Indicator is not limited to the Pi Zero W only. Any other Linux capable Raspberry Pi boards (or their compatbile clones) can be used as well. The specific GPIO pins used for the switch and the connection indicator LED can be configured in the software. Once the software for the activity indicator is set up and functioning properly, it is recommended to place the hardware in a solid enclosure.
 
-Once the software for the activity indicator has been set up and is good to go (see next section), it is recommended to place the hardware into a solid enclosure.
+### Enclosure
+
+The repo provides a 3D-Printable enclosure for a Pi Zero based Activity Indicator in the [`enclosure`](enclosure) directory. The enclosure consists of a base, a top and a couple of "text boxes". These are provided as STL and 3MF. The [Labels.pdf](enclosure/Labels.pdf) file contains the labels meant to be glued onto the text boxes.
+
+A Fusion 360 f3z file has also been provided in the [`enclosure`](enclosure) directory if you wish to modify the enclosure.
 
 ## Software - Setting up the Activity Indicator
 
@@ -101,44 +103,43 @@ This will install all required apt packages and python modules.
 
 > Note: This section can be skipped if your only goal is to set up the software. 
 
-This section will briefly provide an overview of the software behind the activity-indicator.
+This section provides a brief overview of the software behind the activity-indicator.
 
 #### activity-indicator.py
 
-The activity indicator software primarily driven by the [acitvity-indicator.py](software/activity-indicator.py) script, whose primary job is to monitor and handles changes in the activity switch. It is launched as a systemd service and continously runs in the background.
+The activity indicator software is primarily driven by the [activity-indicator.py](software/activity-indicator.py) script, which monitors and handles changes in the activity switch. It is launched as a systemd service and runs continuously in the background.
 
-When a change in the activity switch has been detected, the script will execute all subservices defined in the [activity-indicator.ini](software/activity-indicator.ini) configuration file assigned to the committed action (open or closed). Each subservice defined in the configuration file can contain a command which should be executed upon setting the switch into its opening position (`OpenExec`) and closing position (`ClosedExec`). Setting up the configuration file is explained in the ["Configuring the software" section](#configuring-the-software).     
+When a change in the activity switch is detected, the script executes all subservices defined in the [activity-indicator.ini](software/activity-indicator.ini) configuration file, which are assigned to the committed action (open or closed). Each subservice defined in the configuration file can contain a command to be executed upon setting the switch to its opening position (`OpenExec`) or closing position (`ClosedExec`). Setting up the configuration file is explained in the ["Configuring the software" section](#configuring-the-software).
 
-The script is also responsible for checking whether an internet connection is available, which in return sets the color of the connection indicator LED. Should no internet connection be available, the programm is halted and returns to execution as soon as a connection is established again. If the switch position is changed while no internet connection is available, the change will be registered as soon as the connection has been established again.
+The script also checks for internet connectivity and sets the color of the connection indicator LED accordingly. If no internet connection is available, the program is halted and resumes execution when a connection is re-established. If the switch position is changed while no internet connection is available, the change will be registered when the connection is re-established.
 
-Unexpected errors are also handled: Should an unexpected error occur during execution, the script will print an error message and blinks the connection LED green and red 3 times. The systemd service unit for the script, [activity-indicator.service](software/systemd/activity-indicator.service), is configured to automatically restart the script after it has exited, meaning the script must not be manually started again after a crash or unexpected exit.
+The script also handles unexpected errors by printing an error message and blinking the connection LED green and red 3 times. The systemd service unit for the script, [activity-indicator.service](software/systemd/activity-indicator.service), is configured to automatically restart the script after it exits, so the script does not need to be manually started again after a crash or unexpected exit.
 
 #### Telegram Bot
 
 ![](docs/TelegramScreenshot.png)
 
-The scripts and configuration files to run a telegram bot can be found in the [software/telegram](software/telegram) folder.
+The scripts and configuration files for running a Telegram bot can be found in the [software/telegram](software/telegram) folder.
 
-The [telegram-activity-indicator.py](software/telegram/telegram-activity-indicator.py) script is responsible for sending
-an opening and closing message to one or more chats. Chats, along with their opening and closing messages can be configured in the [telegram.ini](software/telegram/telegram.ini) configuration file. Setting up the configuration file is explained in the ["Configuring the software" section](#configuring-the-software).
+The [telegram-activity-indicator.py](software/telegram/telegram-activity-indicator.py) script is responsible for sending opening and closing messages to one or more chats. Chats and their corresponding opening and closing messages can be configured in the [telegram.ini](software/telegram/telegram.ini) configuration file. Setting up the configuration file is explained in the ["Configuring the software" section](#configuring-the-software).
 
-The script takes a path to a configuration file (`-c`, if not specified, set to `telegram.ini`) and a activity status (`open` or `closed`) as an argument. It also offers you to set the log level using the `-l` flag, which is set to `INFO` if left out.
-The full script usage can be printed by providing it the `-h` option.
+The script takes a path to a configuration file (`-c`, default is set to `telegram.ini`) and an activity status (`open` or `closed`) as arguments. It also allows users to set the log level using the `-l` flag, which is set to `INFO` if left out. The full script usage can be printed by providing it the `-h` option.
 
-> While [telegram-activity-indicator.py](software/telegram/telegram-activity-indicator.py) script can be executed manually, it has been written with the intention of being executed by the activity-indicator service in mind. Should you want to make use of a telegram bot, then [telegram-activity-indicator.py](software/telegram/telegram-activity-indicator.py) must be specified in the [activity-indicator.ini](software/activity-indicator.ini) configuration file. The default [activity-indicator.ini](software/activity-indicator.ini) provided in this repo is already set to do that.
+> The [telegram-activity-indicator.py](software/telegram/telegram-activity-indicator.py) script can be executed manually, but it was designed to be executed by the activity-indicator service. To make use of the Telegram bot, it must be specified in the [activity-indicator.ini](software/activity-indicator.ini) configuration file. The default [activity-indicator.ini](software/activity-indicator.ini) provided in this repo already includes this configuration.
 
 #### TYPO3 Extension
 
 ![](docs/TYPO3Screenshot.png)
 
-Since our Makerspace's website uses the TYPO3 CMS, we have developed a TYPO3 extension to display the current activity status on the website. The extension can be found [here](https://github.com/TU-DO-Makerspace/TYPO3-ActivityIndicator) and can be controlled through a REST API. 
+A TYPO3 extension has been developed to display the current activity status on the website of our Makerspace. The extension can be found [here](https://github.com/TU-DO-Makerspace/TYPO3-ActivityIndicator) and can be controlled through a REST API.
 
-The scripts and configuration files reuired to connect the Activity Indicator to the TYPO3 extension can be found in the [software/typo3](software/typo3) folder.
+The scripts and configuration files required to connect the Activity Indicator to the TYPO3 extension can be found in the [software/typo3](software/typo3) folder.
 
-The [typo3-activity-indicator.py](software/typo3/typo3-activity-indicator.py) script is responsible sending the current activity status to the TYPO3 extension via a POST REST API request. The script takes a path to a configuration file (`-c`, if not specified, set to `typo3.ini`), which holds HTTP Basic Auth credentials  and the API URL, and takes a activity status (`open` or `closed`) as an argument.
+The [typo3-activity-indicator.py](software/typo3/typo3-activity-indicator.py) script is responsible for sending the current activity status to the TYPO3 extension via a POST REST API request. The script takes a path to a configuration file (`-c`, default is set to `typo3.ini`), which holds HTTP Basic Auth credentials  and the API URL, and takes an activity status (`open` or `closed`) as an argument.
 The full script usage can be printed by providing it the `-h` option.
 
-> While [typo3-activity-indicator.py](software/typo3/typo3-activity-indicator.py) script can be executed manually, it has been written with the intention of being executed by the activity-indicator service in mind. Should you want to connect the Activity Indicator to a TYPO3 Website, then [typo3-activity-indicator.py](software/typo3/typo3-activity-indicator.py) must be specified in the [activity-indicator.ini](software/activity-indicator.ini) configuration file. The default [activity-indicator.ini](software/activity-indicator.ini) provided in this repo already contains the necessary lines (more on that in the ["Configuring the software" section](#configuring-the-software)).
+> The [typo3-activity-indicator.py](software/typo3/typo3-activity-indicator.py) script can be executed manually, but it was designed to be executed by the activity-indicator service. To connect the Activity Indicator to a TYPO3 website, it must be specified in the [activity-indicator.ini](software/activity-indicator.ini) configuration file. The default [activity-indicator.ini](software/activity-indicator.ini) provided in this repo already includes this configuration, but it is commented out by default as it is likely not to be used by other users than our makerspace. (more on that in the ["Configuring the software" section](#configuring-the-software)).
+
 
 ### Configuring the software
 
