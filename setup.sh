@@ -83,10 +83,14 @@ elif [[ "$1" == "install" || "$1" == "install-emu" ]]; then
 	mkdir -p $PY_SCRIPTS_DIR/typo3
 	cp -v $PROJECT_DIR/software/typo3/*.py $PY_SCRIPTS_DIR/typo3/
 
+	mkdir -p $PY_SCRIPTS_DIR/new_website
+	cp -v $PROJECT_DIR/software/new_website/*.py $PY_SCRIPTS_DIR/new_website/
+
         mkdir -p $CFG_DIR
         cp -v $PROJECT_DIR/software/activity-indicator.ini $CFG_DIR/activity-indicator.ini
         cp -v $PROJECT_DIR/software/telegram/telegram.ini $CFG_DIR/telegram.ini
 	cp -v $PROJECT_DIR/software/typo3/typo3.ini $CFG_DIR/typo3.ini
+	cp -v $PROJECT_DIR/software/new_website/new_website.ini $CFG_DIR/new_website.ini
 
         echo "Setting up systemd service..."
         bash $PROJECT_DIR/software/systemd/setup.sh install
