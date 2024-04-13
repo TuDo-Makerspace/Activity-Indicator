@@ -52,7 +52,7 @@ ping_candidates = [
 ]
 
 # Constants
-SW_VER = "1.2.1"
+SW_VER = "1.2.2"
 AUTHOR = "Patrick Pedersen <ctx.xda@gmail.com>, TU-DO Makerspace <tu-do.net>"
 LICENSE = "GPLv3"
 SOURCE_CODE = "https://github.com/TU-DO-Makerspace/Activity-Indicator"
