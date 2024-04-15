@@ -87,11 +87,14 @@ def print_journalctl(msg):
 # -
 # Returns True if connection is available, False otherwise
 def check_connection():
-    for candidate in ping_candidates:
-        ret = ping(candidate, timeout=1)
-        if ret:
-            return True
-    return False
+    try:
+        for candidate in ping_candidates:
+            ret = ping(candidate, timeout=1)
+            if ret:
+                return True
+        return False
+    except Exception as e:
+        return False
 
 
 # Sets the connection indicator LED
