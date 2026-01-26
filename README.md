@@ -16,11 +16,11 @@ A physical switch that informs everyone whether the TU-DO Makerspace is currentl
   - [An Overview of the Software](#an-overview-of-the-software)
     - [activity-indicator.py](#activity-indicatorpy)
     - [Telegram Bot](#telegram-bot)
-    - [TYPO3 Extension](#typo3-extension)
+    - [Website](#website)
   - [Configuring the software](#configuring-the-software)
     - [Setting up the main configuration file](#setting-up-the-main-configuration-file)
     - [Setting up the telegram bot](#setting-up-the-telegram-bot)
-    - [Connecting the Activity Indicator to the TYPO3 Activity Indicator extension](#connecting-the-activity-indicator-to-the-typo3-activity-indicator-extension)
+    - [Connecting the Activity Indicator to the website](#connecting-the-activity-indicator-to-the-website)
     - [Adding custom subservices](#adding-custom-subservices)
   - [Installation](#installation)
 - [Emulation](#emulation)
@@ -127,18 +127,13 @@ The script takes a path to a configuration file (`-c`, default is set to `telegr
 
 > The [telegram-activity-indicator.py](software/telegram/telegram-activity-indicator.py) script can be executed manually, but it was designed to be executed by the activity-indicator service. To make use of the Telegram bot, it must be specified in the [activity-indicator.ini](software/activity-indicator.ini) configuration file. The default [activity-indicator.ini](software/activity-indicator.ini) provided in this repo already includes this configuration.
 
-#### TYPO3 Extension
+#### Website
 
-![](docs/TYPO3Screenshot.png)
+The scripts and configuration files required to connect the Activity Indicator to the website can be found in the [software/website](software/website) folder.
 
-A TYPO3 extension has been developed to display the current activity status on the website of our Makerspace. The extension can be found [here](https://github.com/TU-DO-Makerspace/TYPO3-ActivityIndicator) and can be controlled through a REST API.
+The [website.py](software/website/website.py) script is responsible for sending the current activity status to the website via a POST request to `/api/activityIndicator`. The script takes a path to a configuration file (`-c`, default is set to `website.ini`), which holds HTTP Basic Auth credentials and the base URL, and takes an activity status (`open` or `closed`) as an argument. The full script usage can be printed by providing it the `-h` option.
 
-The scripts and configuration files required to connect the Activity Indicator to the TYPO3 extension can be found in the [software/typo3](software/typo3) folder.
-
-The [typo3-activity-indicator.py](software/typo3/typo3-activity-indicator.py) script is responsible for sending the current activity status to the TYPO3 extension via a POST REST API request. The script takes a path to a configuration file (`-c`, default is set to `typo3.ini`), which holds HTTP Basic Auth credentials  and the API URL, and takes an activity status (`open` or `closed`) as an argument.
-The full script usage can be printed by providing it the `-h` option.
-
-> The [typo3-activity-indicator.py](software/typo3/typo3-activity-indicator.py) script can be executed manually, but it was designed to be executed by the activity-indicator service. To connect the Activity Indicator to a TYPO3 website, it must be specified in the [activity-indicator.ini](software/activity-indicator.ini) configuration file. The default [activity-indicator.ini](software/activity-indicator.ini) provided in this repo already includes this configuration, but it is commented out by default as it is likely not to be used by other users than our makerspace. (more on that in the ["Configuring the software" section](#configuring-the-software)).
+> The [website.py](software/website/website.py) script can be executed manually, but it was designed to be executed by the activity-indicator service. To connect the Activity Indicator to the website, it must be specified in the [activity-indicator.ini](software/activity-indicator.ini) configuration file. The default [activity-indicator.ini](software/activity-indicator.ini) provided in this repo already includes this configuration.
 
 
 ### Configuring the software
@@ -152,15 +147,20 @@ The first step is to configure the main activity-indicator configuration file, w
 [GPIO]
 Switch = 16
 ConLEDGreen = 20
-ConLEDRed = 21
+ConLEDRed = 26
+
+[Switch]
+; Minimum consecutive reads before accepting a new state
+; Has been introduced as a work-around for noisy hardware
+MinReads = 10
 
 [telegram]
 OpenExec = /usr/bin/python3 /usr/share/pyshared/activity-indicator/telegram/telegram-activity-indicator.py -c /var/lib/activity-indicator/telegram.ini open
 ClosedExec = /usr/bin/python3 /usr/share/pyshared/activity-indicator/telegram/telegram-activity-indicator.py -c /var/lib/activity-indicator/telegram.ini closed
 
-; [typo3]
-; OpenExec = /usr/bin/python3 /usr/share/pyshared/activity-indicator/typo3/typo3-activity-indicator.py -c /var/lib/activity-indicator/typo3.ini open
-; ClosedExec = /usr/bin/python3 /usr/share/pyshared/activity-indicator/typo3/typo3-activity-indicator.py -c /var/lib/activity-indicator/typo3.ini closed
+[website]
+OpenExec = /usr/bin/python3 /usr/share/pyshared/activity-indicator/website/website.py -c /var/lib/activity-indicator/website.ini open
+ClosedExec = /usr/bin/python3 /usr/share/pyshared/activity-indicator/website/website.py -c /var/lib/activity-indicator/website.ini closed
 
 ; [your_subservice_name]
 ; OpenExec = COMMAND TO RUN WHEN ACTIVITY HAS CHANGED TO OPEN
@@ -171,7 +171,7 @@ Make sure to assign the correct GPIOs to your own configuration if they do not a
 
 The `[telegram]` section provides the commands to execute the telegram-bot subservice. If you do not wish to use a telegram bot for the activity indicator, comment out or remove this entry.
 
-The `[typo3]` section provides the commands to update the activity status on a TYPO3 website with the Activity Indicator extension installed. Since this is more specific to our Makerspace's website than the Telegram bot is, it is commented out by default. Should you be running a TYPO3 website too, you can gladly install the [Activity-Indicator extension](https://github.com/TU-DO-Makerspace/TYPO3-ActivityIndicator) and uncomment this section. 
+The `[website]` section provides the commands to update the activity status on the website via the API. If you are not using the website integration, comment out or remove this section.
 
 Adding additional subservices is elaborated further in the ["Adding custom subservices" section](#adding-custom-subservices) below. 
 
@@ -215,22 +215,20 @@ OpenMessage = TUDO is open!
 ClosedMessage = TUDO is closed!
 ```
 
-#### Connecting the Activity Indicator to the TYPO3 Activity Indicator extension
+#### Connecting the Activity Indicator to the website
 
-> Note: Skip this section if you're not planning to connect the Activity indicator to the TYPO3 Activity Indicator extension.
+> Note: Skip this section if you're not planning to connect the Activity indicator to the website.
 
-Before configuring the Activity Indicator software, ensure that your TYPO3 instance has the Activity Indicator extension installed and configured. Should this not be the case, please refer to the ~~documentation of the [TYPO3 Activity Indicator extension](https://github.com/TU-DO-Makerspace/TYPO3-ActivityIndicator)~~ (Not available yet).
-
-Once the extension is installed and configured, you can connect the Activity Indicator to the extension by editing the [typo3.ini configuration file](software/typo3/typo3.ini) located at [software/typo3/typo3.ini](software/typo3/typo3.ini). By default the configuration file will contain the following content:
+To connect the Activity Indicator to the website, edit the [website.ini configuration file](software/website/website.ini) located at [software/website/website.ini](software/website/website.ini). By default the configuration file will contain the following content:
 
 ```
 [api]
 Username = INSERT YOUR HTTP BASIC AUTH USERNAME HERE
 Password = INSERT YOUR HTTP BASIC AUTH PASSWORD HERE
-URL = INSRET YOUR WEBSITE URL HERE
+URL = INSERT YOUR WEBSITE URL HERE
 ```
 
-The configuration file requires the HTTP Basic Auth username and password to obtain access the extensions rest API, as well as a ULR to the TYPO3 website with the Activity Indicator extension installed.
+The configuration file requires the HTTP Basic Auth username and password to access the website's API, as well as the base URL to the website.
 
 An example configuration could look like this:
 ```

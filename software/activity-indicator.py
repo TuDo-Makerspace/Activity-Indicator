@@ -52,7 +52,7 @@ ping_candidates = [
 ]
 
 # Constants
-SW_VER = "1.2.2"
+SW_VER = "1.3.0"
 AUTHOR = "Patrick Pedersen <ctx.xda@gmail.com>, TU-DO Makerspace <tu-do.net>"
 LICENSE = "GPLv3"
 SOURCE_CODE = "https://github.com/TU-DO-Makerspace/Activity-Indicator"
@@ -87,11 +87,14 @@ def print_journalctl(msg):
 # -
 # Returns True if connection is available, False otherwise
 def check_connection():
-    for candidate in ping_candidates:
-        ret = ping(candidate, timeout=1)
-        if ret:
-            return True
-    return False
+    try:
+        for candidate in ping_candidates:
+            ret = ping(candidate, timeout=1)
+            if ret:
+                return True
+        return False
+    except Exception as e:
+        return False
 
 
 # Sets the connection indicator LED
@@ -267,6 +270,16 @@ args = parser.parse_args()
 config = configparser.ConfigParser()
 config.read(args.config)
 
+# Minimum consecutive reads required to accept a new switch state.
+DEFAULT_MIN_READS = 1
+try:
+    min_reads = config.getint("Switch", "MinReads", fallback=DEFAULT_MIN_READS)
+except (configparser.NoSectionError, ValueError):
+    min_reads = DEFAULT_MIN_READS
+if min_reads < 1:
+    print_journalctl("Invalid Switch.MinReads value, defaulting to 1")
+    min_reads = DEFAULT_MIN_READS
+
 # Boot message
 print("=== TU-DO Activity Indicator ===")
 print("Version:\t" + SW_VER)
@@ -300,6 +313,10 @@ if saved_state(SAVED_STATE_PATH) == None:
 # Compare to last saved state
 prev_state = saved_state(SAVED_STATE_PATH)
 
+# Debounce tracking for switch reads
+debounce_state = prev_state
+debounce_count = 0
+
 # Used to check if we've successfully re-established internet connection
 prev_wifi_state = True
 
@@ -323,23 +340,38 @@ while True:
     # Fetch position of switch
     curr_state = GPIO_to_activity(GPIO.input(switch_pin))
 
+    if curr_state == prev_state:
+        debounce_state = curr_state
+        debounce_count = 0
+        continue
+
+    if curr_state != debounce_state:
+        debounce_state = curr_state
+        debounce_count = 1
+    else:
+        debounce_count += 1
+
+    if debounce_count < min_reads:
+        continue
+
     # Activity changed, call subservices
-    if curr_state != prev_state:
-        try:
-            # Call subservices
-            print_journalctl(
-                "Activity changed to: " + str(curr_state.name) + ", calling subservices"
-            )
-            ret = call_subservices(config, curr_state)
+    try:
+        # Call subservices
+        print_journalctl(
+            "Activity changed to: " + str(curr_state.name) + ", calling subservices"
+        )
+        ret = call_subservices(config, curr_state)
 
-            # Save activity state to file
-            prev_state = curr_state
-            save_state(SAVED_STATE_PATH, prev_state)
+        # Save activity state to file
+        prev_state = curr_state
+        debounce_state = curr_state
+        debounce_count = 0
+        save_state(SAVED_STATE_PATH, prev_state)
 
-            if not ret:
-                error(red_pin, green_pin, "One or more subservices failed")
+        if not ret:
+            error(red_pin, green_pin, "One or more subservices failed")
 
-            print_journalctl("All subservices executed successfully")
+        print_journalctl("All subservices executed successfully")
 
-        except Exception as e:
-            error(red_pin, green_pin, str(e))
+    except Exception as e:
+        error(red_pin, green_pin, str(e))
