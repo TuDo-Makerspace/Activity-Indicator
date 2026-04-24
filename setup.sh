@@ -27,7 +27,19 @@ CFG_DIR=/var/lib/activity-indicator
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 PROJECT_DIR="$SCRIPT_DIR"
 
-APT_DEPENDENCIES="python3 python3-pip python3-dev python3-requests"
+APT_DEPENDENCIES="python3 python3-libgpiod python3-requests iputils-ping"
+
+install_config_if_missing() {
+	local src="$1"
+	local dst="$2"
+
+	if [ -e "$dst" ]; then
+		echo "Keeping existing config: $dst"
+		return 0
+	fi
+
+	install -D -m 0644 "$src" "$dst"
+}
 
 emu_mount_fixed_cpuinfo() {
 	mkdir -p $CFG_DIR
@@ -49,18 +61,11 @@ fi
 
 if [ "$1" == "dependencies" ]; then
         echo "Installing apt dependencies..."
+        apt update
         apt install -y $APT_DEPENDENCIES
 
         if [ $? -ne 0 ]; then
                 echo "Failed to install apt dependencies"
-                exit 1
-        fi
-
-        echo "Installing pip dependencies..."
-        pip3 install -r "$PROJECT_DIR/requirements.txt"
-
-        if [ $? -ne 0 ]; then
-                echo "Failed to install pip dependencies"
                 exit 1
         fi
 
@@ -74,19 +79,18 @@ elif [[ "$1" == "install" || "$1" == "install-emu" ]]; then
 		echo "Mounted fixed cpuinfo!"
 	fi
 
-        cp -v $PROJECT_DIR/software/activity-indicator.py $BIN_DIR
+        install -D -m 0755 "$PROJECT_DIR/software/activity-indicator.py" "$BIN_DIR"
 
-        mkdir -p $PY_SCRIPTS_DIR
-        mkdir -p $PY_SCRIPTS_DIR/telegram
-        cp -v $PROJECT_DIR/software/telegram/*.py $PY_SCRIPTS_DIR/telegram/
+        install -d "$PY_SCRIPTS_DIR/telegram"
+        install -m 0644 "$PROJECT_DIR"/software/telegram/*.py "$PY_SCRIPTS_DIR/telegram/"
 
-	mkdir -p $PY_SCRIPTS_DIR/typo3
-	cp -v $PROJECT_DIR/software/typo3/*.py $PY_SCRIPTS_DIR/typo3/
+	install -d "$PY_SCRIPTS_DIR/typo3"
+	install -m 0644 "$PROJECT_DIR"/software/typo3/*.py "$PY_SCRIPTS_DIR/typo3/"
 
         mkdir -p $CFG_DIR
-        cp -v $PROJECT_DIR/software/activity-indicator.ini $CFG_DIR/activity-indicator.ini
-        cp -v $PROJECT_DIR/software/telegram/telegram.ini $CFG_DIR/telegram.ini
-	cp -v $PROJECT_DIR/software/typo3/typo3.ini $CFG_DIR/typo3.ini
+        install_config_if_missing "$PROJECT_DIR/software/activity-indicator.ini" "$CFG_DIR/activity-indicator.ini"
+        install_config_if_missing "$PROJECT_DIR/software/telegram/telegram.ini" "$CFG_DIR/telegram.ini"
+	install_config_if_missing "$PROJECT_DIR/software/typo3/typo3.ini" "$CFG_DIR/typo3.ini"
 
         echo "Setting up systemd service..."
         bash $PROJECT_DIR/software/systemd/setup.sh install

@@ -4,7 +4,7 @@ Description=Handles the activity indicator, see activity-indicator.py for more d
 [Service]
 Type=simple
 Restart=on-failure
-ExecStart=activity-indicator -c /var/lib/activity-indicator/activity-indicator.ini
+ExecStart=/usr/bin/python3 /usr/local/sbin/activity-indicator -c /var/lib/activity-indicator/activity-indicator.ini
 
 [Install]
 WantedBy=multi-user.target
