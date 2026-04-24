@@ -17,51 +17,55 @@
 # Usage: Run telegram-activity-indicator.py --help
 # Brief Description: Sends TUDO activity info via a Telegram bot
 
-# Description:
-#       The following script sends TUDO activity info via a Telegram bot.
-#       A configuration file (default config.ini) is used to store the
-#       Telegram bot token, the target chat id's of all chats to be notified,
-#       and the opening and closing messages to be sent to each individual chat.
-#       See config.ini for a template of the configuration file.
-
-import logging
 import argparse
 import configparser
-import telegram
+import logging
+import sys
 
-# Parse arguments
-parser = argparse.ArgumentParser(description='Send TUDO activity info via a Telegram bot')
-parser.add_argument('--log_level', '-l', help='Log level', default='INFO')
-parser.add_argument('--config_file', '-c', help='Config file', default='telegram.ini')
-parser.add_argument(
-        'activity',
-        choices=['open', 'closed'],
-        help='Activity status'
+import requests
+
+TELEGRAM_API_URL = "https://api.telegram.org/bot{token}/sendMessage"
+
+parser = argparse.ArgumentParser(
+    description="Send TUDO activity info via a Telegram bot"
 )
+parser.add_argument("--log_level", "-l", help="Log level", default="INFO")
+parser.add_argument("--config_file", "-c", help="Config file", default="telegram.ini")
+parser.add_argument("activity", choices=["open", "closed"], help="Activity status")
 args = parser.parse_args()
 
-# Start logging
-logging.basicConfig(level=args.log_level, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=args.log_level,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
 logger = logging.getLogger(__name__)
 
-# Read config file
 config = configparser.ConfigParser()
 config.read(args.config_file)
 
-# Create telegram bot object
-tkn = config['bot']['token']
-bot = telegram.Bot(token=tkn)
+token = config["bot"]["Token"]
+endpoint = TELEGRAM_API_URL.format(token=token)
 
-# Send activity to each chat
 for section in config.sections():
-        if section == "bot":
-                continue
-        
-        chat_id = config[section]['ChatID']
-        open_msg = config[section]['OpenMessage']
-        closed_msg = config[section]['ClosedMessage']
+    if section == "bot":
+        continue
 
-        if args.activity == "open":
-                bot.send_message(chat_id=chat_id, text=open_msg)
-        elif args.activity == "closed":
-                bot.send_message(chat_id=chat_id, text=closed_msg)
+    chat_id = config[section]["ChatID"]
+    open_msg = config[section]["OpenMessage"]
+    closed_msg = config[section]["ClosedMessage"]
+    message = open_msg if args.activity == "open" else closed_msg
+
+    response = requests.post(
+        endpoint,
+        data={"chat_id": chat_id, "text": message},
+        timeout=10,
+    )
+
+    if response.status_code != 200:
+        logger.error("Telegram API request failed: %s", response.text)
+        sys.exit(1)
+
+    payload = response.json()
+    if not payload.get("ok"):
+        logger.error("Telegram API rejected request: %s", payload)
+        sys.exit(1)
